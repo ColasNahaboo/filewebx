@@ -1,0 +1,350 @@
+#!/bin/bash
+# shellcheck disable=SC2155
+VERSION=0.0.0
+source='https://github.com/ColasNahaboo/filewebx'
+copyright='(c)2026 Colas Nahaboo, MIT License'
+
+###################### Common
+# shellcheck disable=SC1091
+. cgibashopts
+err() { echo "***ERROR: $*" >&2; exit 1; }
+nl=$'\n'
+style='
+    :root {
+        --bg: #fcfcfc;           /* Soft off-white */
+        --sidebar-bg: #f0f2f5;   /* Light gray for structure */
+        --text: #24292f;         /* Deep charcoal for readability */
+        --timestamp: #6e7781;    /* Muted gray */
+        --ip: #0969da;           /* Clean blue */
+        --path: #bc4c00;         /* Terracotta/Orange */
+        --border: #d0d7de;       /* Standard light border */
+        --highlight: #fff8c5;    /* Pale yellow for hover/focus */
+    }
+    body {
+        background-color: var(--bg);
+        color: var(--text);
+        font-family: Proxima Nova, system-ui, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, -apple-system, Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        margin: 0 auto;
+        padding: 20px;
+    }
+    pre, code, .log-line {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 13px;
+    }
+    /* Sticky Header */
+    .header {
+        position: sticky;
+        top: 0;
+        background: rgba(252, 252, 252, 0.9);
+        backdrop-filter: blur(5px);
+        border-bottom: 1px solid var(--border);
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1000;
+    }
+    .header h1 { font-size: 18px; margin: 0; }
+    /* Log line styling */
+    .log-line {
+        padding: 4px 12px;
+        border-left: 3px solid #aaa;
+        border-bottom: 1px solid #f0f0f0;
+        white-space: pre-wrap;
+        transition: all 0.1s ease;
+    }
+    .log-line:nth-child(even) { background-color: #f0f0ff; }
+    .log-line:nth-child(odd)  { background-color: #fafaff; }
+    .log-line:hover {
+        background-color: var(--highlight);
+        border-left: 3px solid var(--ip);
+    }
+    /* Action Buttons */
+    .btn {
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--ip);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 14px;
+    }
+    .btn:hover { background: #f6f8fa; }
+    .btn2 {background: #afa;}
+    .btn2:hover {background: #8f8;}
+    .result {
+        background-color: #f0fff0;
+        border-left-color: green;
+        border-left-style:solid;
+        border-left-width:4px;
+        padding:16px
+    }
+    p.version {color: #888; font-size:small}
+'
+
+version="<p class=version><a href='$source'>filewebx</a> v$VERSION, $copyright</p>"
+if [[ $SCRIPT_NAME =~ /([[:alnum:]]+)([~][-_.[:alnum:]]+)$ ]]; then
+    fwxid="/${BASH_REMATCH[2]}"       # fwxid is '/~id'
+    # fwxname="${BASH_REMATCH[1]}"    # actually a password, not used
+else
+    fwxid=                            # admin
+    # fwxname="${SCRIPT_NAME##*/}"    # actually a password, not used
+fi
+data=$(realpath "../data$fwxid")
+[[ -d "$data" ]] || mkdir -p "$data"
+
+################################# Main filewebx mode
+
+title="Filewebx: Upload files to transfer"
+header="Content-Type: text/html$nl$nl<html><head><style>$style</style><title>$title</title>
+</head><body><h1 class=header>$title</h1>"
+footer="<hr><a target='_blank' href='' class=btn>Open another upload window</a>
+<p><a href='$SCRIPT_NAME?mode=logs' class=btn>See logs</a>$version</body></html>"
+validity=100
+
+main() {
+    local continued
+    echo "$header"
+    if [ -n "${FORM_file:-}" ]; then
+        continued=" another"
+	if [ -s "$CGIBASHOPTS_DIR/file" ]; then
+	    filename="${FORM_file##*/}"
+            # only alphanums and [-_.] and avoid starting with dot or hyphen
+            filename="${filename//[^-_.~A-Za-z0-9]/}"
+            [[ $filename =~ ^[-.] ]] && filename="_$filename"
+            # safety: avoid too easily guessable names, or empty ones
+            (( ${#filename} < 10 )) && filename="$(random_string 8)-$filename"
+            file="$data/$filename"
+	    mv "$CGIBASHOPTS_DIR/file" "$file"
+            chmod a+rw "$file"
+            set-expiration "$validity" "$data" "$filename"
+	    name=$(urlencode "$filename")
+            size=$(stat -c %s "$file")
+            hsize=$(human_size "$size")
+	    echo "File uploaded ($hsize), can be downloaded as:<p class=result>https://${SERVER_NAME}$fwxid/$name</p>"
+	    echo "<p><tt>"
+	    echo "</tt><p>Will be removed in $validity days."
+	else
+	    echo "<p>***Error, no file or uploaded empty</p>"
+	fi
+	echo "<p><hr><p>"
+    fi
+    form_page "$continued"
+}
+
+form_page() {
+    local continued="$1"
+    echo "
+    <style>#upload-button { display: none; }</style>
+    <div id='progress-container' style='display:none; width:600px; border:1px solid #ccc; margin-bottom:10px;'>
+        <div id='progress-bar' style='width:0%; height:20px; background-color:green; color:white; text-align:center;'>0%</div>
+    </div>
+    <form id='upload-form' method='POST' enctype='multipart/form-data'>
+        <table>
+            <tr><td>Select$continued File: <td><input class=btn type='file' id='file-input' name='file' size='64' onchange='checkFile()'>
+            <tr id='upload-button'><td>Then click:<td><input class='btn btn2' type='submit' value='Upload'> 
+        </table>
+    </form>
+    <script>
+    document.getElementById('upload-form').onsubmit = function(e) {
+        e.preventDefault();
+        var file = document.getElementById('file-input').files[0];
+        if (!file) return;
+        var formData = new FormData();
+        formData.append('file', file);
+        var xhr = new XMLHttpRequest();
+        document.getElementById('progress-container').style.display = 'block';
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                var percent = Math.round((e.loaded / e.total) * 100);
+                var bar = document.getElementById('progress-bar');
+                bar.style.width = percent + '%';
+                bar.textContent = percent + '%';
+            }
+        };
+        xhr.onload = function() {
+            // Once finished, we replace the whole page with the CGI result
+            document.open();
+            document.write(xhr.responseText);
+            document.close();
+        };
+        xhr.open('POST', '', true);
+        xhr.send(formData);
+    };
+    function checkFile() {
+        var fileInput = document.getElementById('file-input');
+        var uploadButton = document.getElementById('upload-button');
+        
+        if (fileInput.files.length > 0) {
+            uploadButton.style.display = 'table-row';
+        } else {
+            uploadButton.style.display = 'none';
+        }
+    }
+    </script>
+    "
+    echo "$footer"
+}
+
+human_size() {
+    local -i bytes=$1
+    if (( bytes < 1024 )); then
+        echo "${bytes} B"
+        return
+    fi
+    local units=("KB" "MB" "GB" "TB")
+    local unit=""
+    for unit in "${units[@]}"; do
+        # We use a simple integer division for speed
+        if (( bytes < 1048576 )); then
+            # Calculate with one decimal point using integer math
+            echo "$(( (bytes * 10) / 1024 / 10 )).$(( (bytes * 10) / 1024 % 10 )) $unit"
+            return
+        fi
+        bytes=$(( bytes / 1024 ))
+    done
+}
+
+################################# Logs mode
+
+title="Filewebx: Log of downloads"
+apachelogsdir=/var/log/apache2
+apachelogsname=files_access.log
+export fwxstyle="$style
+table.fwxlog td {padding: 0.1rem 0.4rem}
+table.fwxlog th {background-color:#fafaff}
+table.fwxlog th.file {
+  background-color:#f0f0ff;text-align: left; font-weight:bold;
+  border-left: 3px solid #aaa;
+}
+table.fwxlog tr.legend th {
+  font-weight: 500; font-size:80%; color:#aaa;
+}
+table.fwxlog tr th.expire {
+  font-weight: 400; font-size:80%; color:#555;background-color:#f0f0ff;
+}
+table.fwxlog tr.legend { border-left: 3px solid #aaa;}
+table.fwxlog td.date {font-weight:bold}
+table.fwxlog td.host {font-size:small}
+table.fwxlog td.useragent {font-size:small; color:#888888}
+table.fwxlog td.new {background-color:yellow}
+code.fwxcode {font-size: large; background-color:#ffffdd}
+input,textarea {padding: 0.2rem 0.2rem}
+h1 {font-size:1.6rem}
+h2 {font-size:1.3rem}
+span.status {font-size:1.2rem; color: #888888}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto; /* Let content determine width */
+    background: white;
+}
+
+th, td {
+    text-align: left;
+    padding: 8px 12px;
+    border: 1px solid #e1e4e8;
+}
+"
+
+headerlogs="Content-Type: text/html$nl$nl<html><head><style>$fwxstyle</style><title>$title</title>
+</head><body><h1 class=header>$title</h1><table class=fwxlog>"
+footerlogs="</table><a class=btn href='$SCRIPT_NAME'>Upload form</a>$version</body></html>"
+export dateformat='%Y-%m-%d.%Hh%M,%S' # format to display dates
+
+main-logs() {
+    local file qfile logs empty now=$(date +%s) expires
+    echo "$headerlogs"
+    while read -r file; do
+        set_regexp_quote qfile "GET $fwxid/$file "
+        logfiles=$(sudo find "$apachelogsdir" -name "$apachelogsname*")
+        # shellcheck disable=SC2086
+        logs=$(parselogs < <(sudo /usr/bin/zgrep -h "$qfile" $logfiles |sort -r))
+        [[ -z "$logs" ]] && empty=true || empty=false
+        expires=$(get-expiration "$file" "$now")
+        printlogs "$file" "$empty" "$expires" <<<"$logs"
+    done < <(cd "$data" || exit 1; ls -t1 | grep -v '^[~]')
+    echo "$footerlogs"
+}
+
+printlogs(){
+    local file="$1" empty="$2" expires="$3" qfile date ip agent color last
+    if "$empty"; then
+        echo "<trclass=file><th class=file colspan=3>$file <span class=status>no downloads yet</span></th><th class=expire>Expires in $expires days</tr><tr><td colspan=4>&nbsp;</td></tr>"
+        return
+    fi
+    echo "<tr class=file><th class=file colspan=3>$file</th><th class=expire>Expires in $expires days</tr>"
+    echo "<tr class=legend><th>Date+Time<th>IP address<th>Hostname<th>User Agent</tr>"
+    while read -r date ip agent; do
+        if [[ "$ip" != "$last" ]]; then
+            last="$ip"
+            [[ "$color" == '#fff' ]] && color='#eee' || color='#fff'
+        fi
+        host=$(host "$ip")
+        echo "<tr class=log-line><td class=date>$date<td class=ip>$ip<td class=host>$host<td class=useragent>$agent</tr>"
+    done
+    echo "<tr><td colspan=4>&nbsp;</td></tr>"
+}
+
+# 82.66.246.165 - - [2026-02-27T14:53:27+0000] "GET / HTTP/1.1" 403 1977 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0"
+
+parselogs(){
+    local line date agent ip
+    while read -r line; do
+        #               IP                  ISO_DATE                    AGENT
+        if [[ $line =~ ^([^[:space:]]+).*\ \[([-+:[:digit:]]{10}T[-+:[:digit:]]+)\]\ .*\ \"([^\"]+)\"$ ]]; then
+            date=$(date -d "${BASH_REMATCH[2]}" +"$dateformat")
+            agent="${BASH_REMATCH[3]}"
+            ip="${BASH_REMATCH[1]}"
+            echo "$date $ip $agent"
+        else
+            echo "$line"
+        fi
+    done
+}
+    
+################################# Misc utils
+
+# sets the variable in 1rst arg to the quoted 2nd arg string for regexp use,
+# quotes also / for safe use in sed /.../
+# from: https://github.com/ColasNahaboo/colas-bash-lib/blob/main/lib/regexp_quote.sh v1
+set_regexp_quote(){ local -; set +xve; local -n _qs="$1"
+  local i c len="${#2}"; _qs=; for (( i=0; i<len; i++ ));do
+  c="${2:i:1}";case "$c" in [^][{}?*\|+.$\\\(\)/^])_qs+="$c";;'^')_qs+='\^';;
+  *)_qs+="[$c]";;esac;done
+}
+
+# returns a random alphanumeric string of N chars, non-nl-terminated
+random_string() { # LC_ALL=C avoids unicode multibyte mess
+    LC_ALL=C tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c "${1:-12}"
+}
+
+# set expiration date as a dotfile
+set-expiration(){
+    local days="$1" dotfile="$2/.$3"
+    # Double quotes nested inside a $() subshell dont conflict with the outer "
+    touch -d "@$(date -d "+$days days" +%s)" "$dotfile"
+}
+
+# get expiration date from the dotfile. set it if not there
+get-expiration(){
+    local file="$1" now="$2" fdate dotfile
+    dotfile="$data/.$file"
+    if ! [[ -e "$dotfile" ]]; then
+        fdate=$(date -r "$data/$file" --iso)
+        touch -d "@$(date -d "$fdate +$validity days" +%s)" "$dotfile"
+    fi
+    echo $(( ( $(date -r "$dotfile" +%s) - now) / 86400))
+}
+################################# Modes dispatcher
+
+# shellcheck disable=SC2154
+if [[ "$FORM_mode" == logs ]]; then main-logs
+else main
+fi
+

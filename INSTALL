@@ -1,0 +1,33 @@
+#!/bin/bash
+# shellcheck disable=SC1090,SC1091
+err(){ echo "$*"; exit 1;}
+# These must be defined in the conf file
+name=
+dest=
+url=
+if [[ -n "$1" ]]; then . "$1"
+elif [[ -s .filewebx.conf ]]; then . .filewebx.conf
+else err "Please make a .filewebx.conf config file, see filewebx-sample.conf"
+fi
+name="${name//[^_[:alnum:]/}"
+[[ -z "$name" ]] && err "Empty or invalid name"
+
+for i in INSTALL filewebx *.conf; do
+    grep -q '^#!/bin/bash' "$i" || continue
+    if ! bash -n "$i"; then
+        echo "************ $i: Syntax errors, No installation done" >&2
+        exit 1
+    fi
+    scout=$(shellcheck "$i")
+    if [[ -n "$scout" ]]; then
+        echo "$scout"
+        echo "************ $i: shellcheck warnings, No installation done" >&2
+        exit 2
+    fi
+done
+
+rsync -ai --out-format="%n" filewebx "$dest/$name"
+rsync -ai --out-format="%n" cgibashopts "$dest"
+
+echo "Installed at ${url:-YOUR-CGI-BIN-URL}/$name"
+
