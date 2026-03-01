@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2155
-VERSION=0.0.5
+VERSION=0.0.6
 PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
@@ -123,7 +123,7 @@ style='  /*============================================== Common style */
         border-left: 3px solid var(--ip);
     }
     table.fwxlog td {padding: 0.1rem 0.4rem}
-    table.fwxlog th {background-color:#fafaff}
+    table.fwxlog th {background-color:#fafaff; padding: 4px;}
     table.fwxlog th.file {
       background-color:#f0f0ff;text-align: left; font-weight:bold;
       border-left: 3px solid #aaa;
@@ -340,6 +340,8 @@ main-logs() {
     local file qfile logs empty now=$(date +%s) expires
     header logs
     echo "<table class=fwxlog>"
+    # thus our own IP is in the dim 1rst color, to better spot others
+    rowcolor "$REMOTE_ADDR"
     # shellcheck disable=SC2010
     while read -r file; do
         set_regexp_quote qfile "GET $fwxid/$file "
@@ -365,10 +367,10 @@ printlogs(){
     while read -r date ip agent; do
         if [[ "$ip" != "$last" ]]; then
             last="$ip"
-            [[ "$color" == '#fff' ]] && color='#eee' || color='#fff'
+            rowcolor "$ip"
         fi
         host=$(host "$ip")
-        echo "<tr class=log-line><td class=date>$date<td class=ip>$ip<td class=host>$host<td class=useragent>$agent</tr>"
+        echo "<tr class=log-line style='background-color:$color'><td class=date>$date<td class=ip>$ip<td class=host>$host<td class=useragent>$agent</tr>"
     done
     echo "<tr><td colspan=4>&nbsp;</td></tr>"
 }
@@ -390,6 +392,51 @@ parselogs(){
     done
 }
 
+
+# sets the color global var to the color of the row
+rowcolor(){
+    local ip="$1"
+    color="${rowkeys[$1]}"
+    if [[ -n "$color" ]]; then  # cached
+        return
+    elif ((rowkey > rowscolmax)); then # overflow, just evit the extra color
+        color="$rowscolxtra"
+    else                        # allocate next color from the predefined ones
+        color="${rowscol[$rowkey]}"
+        ((rowkey++))
+        rowkeys[$ip]="$color"
+    fi
+}
+# static vars for rowcolor()
+# a map[ipadress] = color
+declare -A rowkeys
+# To maximize perceptual spacing, I used golden-angle hue sampling
+# (137.508° steps), a well-known approximation of greedy max-min spacing
+# to allow distinct colors to distinct IPs
+rowscol[0]='#f7f7f7'
+rowscol[1]='hsl( 92.5, 60%, 95%)'
+rowscol[2]='hsl(315.0, 60%, 95%)'
+rowscol[3]='hsl(177.5, 60%, 95%)'
+rowscol[4]='hsl( 40.0, 60%, 95%)'
+rowscol[5]='hsl(262.5, 60%, 95%)'
+rowscol[6]='hsl(125.0, 60%, 95%)'
+rowscol[7]='hsl(347.5, 60%, 95%)'
+rowscol[8]='hsl(210.0, 60%, 95%)'
+rowscol[9]='hsl( 72.5, 60%, 95%)'
+rowscol[10]='hsl(295.0, 60%, 95%)'
+rowscol[11]='hsl(157.5, 60%, 95%)'
+rowscol[12]='hsl( 20.0, 60%, 95%)'
+rowscol[13]='hsl(242.5, 60%, 95%)'
+rowscol[14]='hsl(105.0, 60%, 95%)'
+rowscol[15]='hsl(327.5, 60%, 95%)'
+rowscol[16]='hsl(190.0, 60%, 95%)'
+rowscol[17]='hsl( 52.5, 60%, 95%)'
+rowscol[18]='hsl(275.0, 60%, 95%)'
+rowscol[19]='hsl(137.5, 60%, 95%)'
+rowscol[20]='hsl(  0, 60%, 95%)'
+rowscolxtra='#eee'
+rowkey=0
+rowscolmax=20
 
 ################################# Admin mode
 

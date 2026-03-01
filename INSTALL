@@ -11,6 +11,7 @@ else err "Please make a .filewebx.conf config file, see filewebx-sample.conf"
 fi
 name="${name//[^_[:alnum:]/}"
 [[ -z "$name" ]] && err "Empty or invalid name"
+(( ${#name} < 8)) && err "Admin nmae too short!"
 
 for i in INSTALL filewebx *.conf; do
     grep -q '^#!/bin/bash' "$i" || continue
