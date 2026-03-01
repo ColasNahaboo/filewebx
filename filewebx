@@ -58,9 +58,16 @@ style='  /*============================================== Common style */
     .btn:hover { background: #f6f8fa; }
     .btn2 {background: #afa;}
     .btn2:hover {background: #8f8;}
-    .result {
+    .resultok {
         background-color: #f0fff0;
         border-left-color: green;
+        border-left-style:solid;
+        border-left-width:4px;
+        padding:16px
+    }
+    .resultfail {
+        background-color: #fff0f0;
+        border-left-color: red;
         border-left-style:solid;
         border-left-width:4px;
         padding:16px
@@ -214,21 +221,36 @@ main() {
             # safety: avoid too easily guessable names, or empty ones
             (( ${#filename} < 10 )) && filename="$(random_string 8)-$filename"
             file="$data/$filename"
-	    mv "$CGIBASHOPTS_DIR/file" "$file"
-            chmod a+rw "$file"
-            set-expiration "$validity" "$data" "$filename"
-	    name=$(urlencode "$filename")
             size=$(stat -c %s "$file")
-            hsize=$(human_size "$size")
-	    echo "<p>File uploaded ($hsize), can be downloaded as:<p class=result>https://${SERVER_NAME}$fwxid/$name</p>"
-	    echo "<p>Will be removed in $validity days.</p>"
-	else
-	    echo "<p>***Error, no file or uploaded empty</p>"
-	fi
+            if check-complete "$file" "$size"; then
+	        mv "$CGIBASHOPTS_DIR/file" "$file"
+                chmod a+rw "$file"
+                set-expiration "$validity" "$data" "$filename"
+	        name=$(urlencode "$filename")
+                hsize=$(human_size "$size")
+	        echo "<p>File uploaded ($hsize), can be downloaded as:<p class=resultok>https://${SERVER_NAME}$fwxid/$name</p>"
+	        echo "<p>Will be removed in $validity days.</p>"
+	    else
+	        echo "<p class=resultfail>***Error, file transfer interrupted!</p>"
+	    fi
+        else
+	        echo "<p class=resultfail>***Error, no file uploaded or empty file</p>"
+        fi
         echo "</div><p><hr><p>"
     fi
     form_page "$continued"
     footer
+}
+
+check-complete(){
+    local file="$1" size="$2" expected
+    # heuristics: file size + 27% encoding + 3000 bytes of headers
+    ((expected = 3000 + (size * 127) / 100))
+    if (("$HTTP_CONTENT_LENGTH" < expected)); then
+        return 1
+    else
+        return 0
+    fi
 }
 
 form_page() {
