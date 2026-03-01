@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2155
-VERSION=0.0.6
+VERSION=0.0.7
 PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
@@ -122,6 +122,7 @@ style='  /*============================================== Common style */
         background-color: var(--highlight);
         border-left: 3px solid var(--ip);
     }
+    tr.unparsed {background-color: #fcfcfc; }
     table.fwxlog td {padding: 0.1rem 0.4rem}
     table.fwxlog th {background-color:#fafaff; padding: 4px;}
     table.fwxlog th.file {
@@ -365,6 +366,10 @@ printlogs(){
     echo "<tr class=file><th class=file colspan=3>$file</th><th class=expire>Expires in $expires days</tr>"
     echo "<tr class=legend><th>Date+Time<th>IP address<th>Hostname<th>User Agent</tr>"
     while read -r date ip agent; do
+        if [[ "$date$ip" == __ ]]; then # parsing failed, prints the raw line
+            echo "<tr class='log-line unparsed'><td colspan=3>$agent</tr>"
+            continue
+        fi
         if [[ "$ip" != "$last" ]]; then
             last="$ip"
             rowcolor "$ip"
@@ -375,19 +380,31 @@ printlogs(){
     echo "<tr><td colspan=4>&nbsp;</td></tr>"
 }
 
-# 82.66.246.165 - - [2026-02-27T14:53:27+0000] "GET / HTTP/1.1" 403 1977 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0"
+# parselogs must parse your apache logs and emit lines "$date $ip $agent"
+# our format:
+# 12.3.46.165 - - [2026-02-27T14:53:27+0000] "GET /infoP/1.1" 403 1977 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0"
+# Standard:
+# 216.73.163.182 - - [01/Mar/2026:07:36:03 +0000] "GET /info HTTP/1.1" 404 787 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0"
 
 parselogs(){
-    local line date agent ip
+    local line date agent ip adate
     while read -r line; do
         #               IP                  ISO_DATE                    AGENT
         if [[ $line =~ ^([^[:space:]]+).*\ \[([-+:[:digit:]]{10}T[-+:[:digit:]]+)\]\ .*\ \"([^\"]+)\"$ ]]; then
+            # our nicer log with ISO dates
             date=$(date -d "${BASH_REMATCH[2]}" +"$dateformat")
             agent="${BASH_REMATCH[3]}"
             ip="${BASH_REMATCH[1]}"
             echo "$date $ip $agent"
+        elif [[ $line =~ ^([^[:space:]]+)[^[]*\ \[([-+:/ [:alnum:]]+)\]\ .*\ \"([^\"]+)\"$ ]]; then
+            # default apache format
+            # replace all / and first : in apache date to get a valid one
+            adate="${BASH_REMATCH[2]//\// }"
+            date=$(date -d "${adate/:/ }" +"$dateformat")
+            agent="${BASH_REMATCH[3]}"
+            ip="${BASH_REMATCH[1]}"
         else
-            echo "$line"
+            echo _ _ "$line"
         fi
     done
 }
