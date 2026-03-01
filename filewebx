@@ -1,15 +1,11 @@
 #!/bin/bash
 # shellcheck disable=SC2155
-VERSION=0.0.1
+VERSION=0.0.3
 PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
 
-###################### Common
-# shellcheck disable=SC1091
-. cgibashopts
-err() { echo "***ERROR: $*" >&2; exit 1; }
-nl=$'\n'
+###################### CSS Style
 style='  /*============================================== Common style */
     :root {
         --bg: #fcfcfc;           /* Soft off-white */
@@ -153,6 +149,12 @@ style='  /*============================================== Common style */
     }
 '
 
+###################### Common
+
+# shellcheck disable=SC1091
+. cgibashopts
+err() { echo "***ERROR: $*" >&2; exit 1; }
+nl=$'\n'
 version="<p class=version><a href='$source'>filewebx</a> v$VERSION, $copyright</p>"
 if [[ $SCRIPT_NAME =~ /([[:alnum:]]+)([~][-_.[:alnum:]]+)$ ]]; then
     fwxid="/${BASH_REMATCH[2]}"       # fwxid is '/~id'
@@ -393,7 +395,31 @@ create-guest(){
     ln -sf "${SCRIPT_NAME##*/}" "${pass}~${id}"
     mkdir -p "$data/~$id"
 }
-    
+
+################################# Clean mode
+
+main-clean() {
+    local nguests=0 id d path file now=$(date +%s) fdate
+    $isadmin || { echo "Location:?mode=upload$nl$nl"; exit 0;}
+    echo "Content-Type:text/plain$nl"
+    for d in "$data/~"*; do
+        [[ "${d: -1}" == '*' ]] && continue # no match
+        while read -r path; do
+            file="${path##*/}"
+            if [[ "${file:0:1}" == '.' ]]; then
+                if [[ -e "$d/${file:1}" ]]; then
+                    (( $(date -r "$path" +%s) < now )) && rm -f "$path" "$d/${file:1}" # obsolete file
+                else
+                    rm -rf "$path" # orphan dotfile
+                fi
+            elif ! [[ -e "$d/.${file}" ]]; then # no exp date, set one
+                fdate=$(date -r "$path" --iso)
+                touch -d "@$(date -d "$fdate +$validity days" +%s)" "$d/.${file}"
+            fi
+        done < <(find "$d" -type f)
+    done
+}
+
 ################################# Misc utils
 
 # sets the variable in 1rst arg to the quoted 2nd arg string for regexp use,
@@ -436,5 +462,6 @@ if [[ -n "$FORM_newguest" ]] && $isadmin; then
     exit 0
 elif [[ "$FORM_mode" == logs ]]; then main-logs
 elif [[ "$FORM_mode" == admin ]]; then main-admin
+elif [[ "$FORM_mode" == clean ]]; then main-clean
 else main                       # mode == upload
 fi
