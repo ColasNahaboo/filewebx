@@ -1,6 +1,7 @@
 #!/bin/bash
 # shellcheck disable=SC2155
-VERSION=0.0.0
+VERSION=0.0.1
+PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
 
@@ -9,7 +10,7 @@ copyright='(c)2026 Colas Nahaboo, MIT License'
 . cgibashopts
 err() { echo "***ERROR: $*" >&2; exit 1; }
 nl=$'\n'
-style='
+style='  /*============================================== Common style */
     :root {
         --bg: #fcfcfc;           /* Soft off-white */
         --sidebar-bg: #f0f2f5;   /* Light gray for structure */
@@ -27,10 +28,8 @@ style='
         margin: 0;
         padding: 0;
     }
-    .container {
-        margin: 0 auto;
-        padding: 20px;
-    }
+    .container { margin: 0 auto; padding: 20px; }
+    .minicontainer { padding: 10px 20px; }
     pre, code, .log-line {
         font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
         font-size: 13px;
@@ -49,20 +48,6 @@ style='
         z-index: 1000;
     }
     .header h1 { font-size: 18px; margin: 0; }
-    /* Log line styling */
-    .log-line {
-        padding: 4px 12px;
-        border-left: 3px solid #aaa;
-        border-bottom: 1px solid #f0f0f0;
-        white-space: pre-wrap;
-        transition: all 0.1s ease;
-    }
-    .log-line:nth-child(even) { background-color: #f0f0ff; }
-    .log-line:nth-child(odd)  { background-color: #fafaff; }
-    .log-line:hover {
-        background-color: var(--highlight);
-        border-left: 3px solid var(--ip);
-    }
     /* Action Buttons */
     .btn {
         padding: 6px 12px;
@@ -85,33 +70,140 @@ style='
         padding:16px
     }
     p.version {color: #888; font-size:small}
+    span.guest {font-weight: normal; color:#888; font-size:small}
+    /*============================================== Navigation */
+    .main-header {
+      display: flex;
+      align-items: baseline; /* Aligns text bottoms nicely */
+      /* justify-content: space-between; /* Pushes brand left, nav right */
+      padding: 10px 20px;
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .brand {
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+    
+    .nav-tabs a {
+      margin-left: 20px;
+      text-decoration: none;
+      color: #007bff;
+      padding: 5px 10px;
+    }
+    
+    .nav-tabs a.active {
+      border-bottom: 2px solid #007bff;
+      font-weight: bold;
+      color: #333;
+    }
+    .nav-tabs a {
+      background: #eee;
+      border-radius: 5px 5px 0 0;
+      border: 1px solid #ccc;
+      border-bottom: none;
+    }
+    /*============================================== Logs style */
+    .log-line {
+        padding: 4px 12px;
+        border-left: 3px solid #aaa;
+        border-bottom: 1px solid #f0f0f0;
+        white-space: pre-wrap;
+        transition: all 0.1s ease;
+    }
+    .log-line:nth-child(even) { background-color: #f0f0ff; }
+    .log-line:nth-child(odd)  { background-color: #fafaff; }
+    .log-line:hover {
+        background-color: var(--highlight);
+        border-left: 3px solid var(--ip);
+    }
+    table.fwxlog td {padding: 0.1rem 0.4rem}
+    table.fwxlog th {background-color:#fafaff}
+    table.fwxlog th.file {
+      background-color:#f0f0ff;text-align: left; font-weight:bold;
+      border-left: 3px solid #aaa;
+    }
+    table.fwxlog tr.legend th {
+      font-weight: 500; font-size:80%; color:#aaa;
+    }
+    table.fwxlog tr th.expire {
+      font-weight: 400; font-size:80%; color:#555;background-color:#f0f0ff;
+    }
+    table.fwxlog tr.legend { border-left: 3px solid #aaa;}
+    table.fwxlog td.date {font-weight:bold}
+    table.fwxlog td.host {font-size:small}
+    table.fwxlog td.useragent {font-size:small; color:#888888}
+    table.fwxlog td.new {background-color:yellow}
+    code.fwxcode {font-size: large; background-color:#ffffdd}
+    input,textarea {padding: 0.2rem 0.2rem}
+    h1 {font-size:1.6rem}
+    h2 {font-size:1.3rem}
+    span.status {font-size:1.2rem; color: #888888}
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: auto; /* Let content determine width */
+        background: white;
+    }
+    th, td {
+        text-align: left;
+        padding: 8px 12px;
+        border: 1px solid #e1e4e8;
+    }
 '
 
 version="<p class=version><a href='$source'>filewebx</a> v$VERSION, $copyright</p>"
 if [[ $SCRIPT_NAME =~ /([[:alnum:]]+)([~][-_.[:alnum:]]+)$ ]]; then
     fwxid="/${BASH_REMATCH[2]}"       # fwxid is '/~id'
+    isadmin=false
     # fwxname="${BASH_REMATCH[1]}"    # actually a password, not used
 else
     fwxid=                            # admin
+    isadmin=true
     # fwxname="${SCRIPT_NAME##*/}"    # actually a password, not used
 fi
 data=$(realpath "../data$fwxid")
 [[ -d "$data" ]] || mkdir -p "$data"
+defvalidity=100
+validity="$defvalidity"
+
+header(){
+    local mode="$1" title="${PROGNAME^}: ${1^}" admintab guestlabel
+    if $isadmin; then
+        admintab="<a href='?mode=admin' class='tab$(is-active admin "$mode")'>Admin</a>"
+    else
+        guestlabel=" <span class=guest>[${fwxid#*~}]</span>"
+        title="$title [${fwxid#*~}]"
+    fi
+    echo "Content-Type: text/html$nl$nl<html><head><style>$style</style><title>$title</title>
+</head><body>
+<header class='main-header'>
+  <div class='brand'>${PROGNAME^}$guestlabel</div>
+  <nav class='nav-tabs'>
+    <a href='?mode=upload' class='tab$(is-active upload "$mode")'>Upload files</a>
+    <a href='?mode=logs' class='tab$(is-active logs "$mode")'>See logs</a>
+    $admintab
+    <a href='?mode=' class='tab' target='_blank'>New Window</a>
+  </nav>
+</header>
+"
+}
+is-active(){
+    [[ "$1" == "$2" ]] && echo " active"
+}
+footer(){
+    echo "<hr><div class=minicontainer>$version</div></body></html>"
+}
 
 ################################# Main filewebx mode
 
-title="Filewebx: Upload files to transfer"
-header="Content-Type: text/html$nl$nl<html><head><style>$style</style><title>$title</title>
-</head><body><h1 class=header>$title</h1>"
-footer="<hr><a target='_blank' href='' class=btn>Open another upload window</a>
-<p><a href='$SCRIPT_NAME?mode=logs' class=btn>See logs</a>$version</body></html>"
-validity=100
-
 main() {
     local continued
-    echo "$header"
+    header upload
     if [ -n "${FORM_file:-}" ]; then
         continued=" another"
+        echo "<div class=minicontainer>"
 	if [ -s "$CGIBASHOPTS_DIR/file" ]; then
 	    filename="${FORM_file##*/}"
             # only alphanums and [-_.] and avoid starting with dot or hyphen
@@ -126,25 +218,25 @@ main() {
 	    name=$(urlencode "$filename")
             size=$(stat -c %s "$file")
             hsize=$(human_size "$size")
-	    echo "File uploaded ($hsize), can be downloaded as:<p class=result>https://${SERVER_NAME}$fwxid/$name</p>"
-	    echo "<p><tt>"
-	    echo "</tt><p>Will be removed in $validity days."
+	    echo "<p>File uploaded ($hsize), can be downloaded as:<p class=result>https://${SERVER_NAME}$fwxid/$name</p>"
+	    echo "<p>Will be removed in $validity days.</p>"
 	else
 	    echo "<p>***Error, no file or uploaded empty</p>"
 	fi
-	echo "<p><hr><p>"
+        echo "</div><p><hr><p>"
     fi
     form_page "$continued"
+    footer
 }
 
 form_page() {
     local continued="$1"
     echo "
     <style>#upload-button { display: none; }</style>
-    <div id='progress-container' style='display:none; width:600px; border:1px solid #ccc; margin-bottom:10px;'>
+    <div id='progress-container' class=minicontainer style='display:none; width:600px; border:1px solid #ccc; margin-bottom:10px;'>
         <div id='progress-bar' style='width:0%; height:20px; background-color:green; color:white; text-align:center;'>0%</div>
     </div>
-    <form id='upload-form' method='POST' enctype='multipart/form-data'>
+    <form id='upload-form' method='POST' enctype='multipart/form-data' class=container>
         <table>
             <tr><td>Select$continued File: <td><input class=btn type='file' id='file-input' name='file' size='64' onchange='checkFile()'>
             <tr id='upload-button'><td>Then click:<td><input class='btn btn2' type='submit' value='Upload'> 
@@ -188,7 +280,6 @@ form_page() {
     }
     </script>
     "
-    echo "$footer"
 }
 
 human_size() {
@@ -212,54 +303,15 @@ human_size() {
 
 ################################# Logs mode
 
-title="Filewebx: Log of downloads"
 apachelogsdir=/var/log/apache2
 apachelogsname=files_access.log
-export fwxstyle="$style
-table.fwxlog td {padding: 0.1rem 0.4rem}
-table.fwxlog th {background-color:#fafaff}
-table.fwxlog th.file {
-  background-color:#f0f0ff;text-align: left; font-weight:bold;
-  border-left: 3px solid #aaa;
-}
-table.fwxlog tr.legend th {
-  font-weight: 500; font-size:80%; color:#aaa;
-}
-table.fwxlog tr th.expire {
-  font-weight: 400; font-size:80%; color:#555;background-color:#f0f0ff;
-}
-table.fwxlog tr.legend { border-left: 3px solid #aaa;}
-table.fwxlog td.date {font-weight:bold}
-table.fwxlog td.host {font-size:small}
-table.fwxlog td.useragent {font-size:small; color:#888888}
-table.fwxlog td.new {background-color:yellow}
-code.fwxcode {font-size: large; background-color:#ffffdd}
-input,textarea {padding: 0.2rem 0.2rem}
-h1 {font-size:1.6rem}
-h2 {font-size:1.3rem}
-span.status {font-size:1.2rem; color: #888888}
-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: auto; /* Let content determine width */
-    background: white;
-}
-
-th, td {
-    text-align: left;
-    padding: 8px 12px;
-    border: 1px solid #e1e4e8;
-}
-"
-
-headerlogs="Content-Type: text/html$nl$nl<html><head><style>$fwxstyle</style><title>$title</title>
-</head><body><h1 class=header>$title</h1><table class=fwxlog>"
-footerlogs="</table><a class=btn href='$SCRIPT_NAME'>Upload form</a>$version</body></html>"
 export dateformat='%Y-%m-%d.%Hh%M,%S' # format to display dates
 
 main-logs() {
     local file qfile logs empty now=$(date +%s) expires
-    echo "$headerlogs"
+    header logs
+    echo "<table class=fwxlog>"
+    # shellcheck disable=SC2010
     while read -r file; do
         set_regexp_quote qfile "GET $fwxid/$file "
         logfiles=$(sudo find "$apachelogsdir" -name "$apachelogsname*")
@@ -269,13 +321,14 @@ main-logs() {
         expires=$(get-expiration "$file" "$now")
         printlogs "$file" "$empty" "$expires" <<<"$logs"
     done < <(cd "$data" || exit 1; ls -t1 | grep -v '^[~]')
-    echo "$footerlogs"
+    echo "</table>"
+    footer
 }
 
 printlogs(){
     local file="$1" empty="$2" expires="$3" qfile date ip agent color last
     if "$empty"; then
-        echo "<trclass=file><th class=file colspan=3>$file <span class=status>no downloads yet</span></th><th class=expire>Expires in $expires days</tr><tr><td colspan=4>&nbsp;</td></tr>"
+        echo "<tr class=file><th class=file colspan=3>$file <span class=status>no downloads yet</span></th><th class=expire>Expires in $expires days</tr><tr><td colspan=4>&nbsp;</td></tr>"
         return
     fi
     echo "<tr class=file><th class=file colspan=3>$file</th><th class=expire>Expires in $expires days</tr>"
@@ -306,6 +359,39 @@ parselogs(){
             echo "$line"
         fi
     done
+}
+
+
+################################# Admin mode
+
+main-admin() {
+    local nguests=0 id
+    $isadmin || { echo "Location:?mode=upload$nl$nl"; exit 0;}
+    header admin
+    echo "<div class=container>Guest accounts:<uL>"
+    for i in "$data/~"*; do
+        [[ "${i: -1}" == '*' ]] && continue # no match
+        id="${i##*/}"
+        sid=$(find . -name "*$id")
+        [[ $sid =~ /[[:alnum:]]+[~][-_.[:alnum:]]+$ ]] || continue
+        echo "<li><b>${id:1}</b>: <a href='https://$SERVER_NAME${SCRIPT_NAME%/*}/${sid##*/}'><tt>https://$SERVER_NAME${SCRIPT_NAME%/*}/${sid##*/}</tt></a>"
+        ((nguests++))
+    done
+    ((nguests == 0)) && echo "<i>...none...</i>"
+    echo "</ul></div>"
+    echo "<form id='create-guest' method='POST' enctype='multipart/form-data' class=container>
+       <input type=text size=12 name=newguest>
+       <input class='btn' type='submit' value='Create new guest'>
+       <i>(short id: letters, numbers, hyphen, dot, underscore)</i>
+    </form>"   
+    footer
+}
+
+create-guest(){
+    local id="$1" pass=$(random_string 12)
+    [[ -n "$id" ]] || return
+    ln -sf "${SCRIPT_NAME##*/}" "${pass}~${id}"
+    mkdir -p "$data/~$id"
 }
     
 ################################# Misc utils
@@ -344,7 +430,11 @@ get-expiration(){
 ################################# Modes dispatcher
 
 # shellcheck disable=SC2154
-if [[ "$FORM_mode" == logs ]]; then main-logs
-else main
+if [[ -n "$FORM_newguest" ]] && $isadmin; then
+    create-guest "${FORM_newguest//[^-_.a-zA-Z0-9]/}"
+    echo "Location:?mode=admin$nl$nl"
+    exit 0
+elif [[ "$FORM_mode" == logs ]]; then main-logs
+elif [[ "$FORM_mode" == admin ]]; then main-admin
+else main                       # mode == upload
 fi
-
