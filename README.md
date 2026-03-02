@@ -1,7 +1,9 @@
 # filewebx
 
-<img src="doc/filewebx-logo-240x200.png" align="right" width="240" height="200">
+<img src="doc/filewebx-logo-240x200.png" align="right" width="120" height="100">
 A simple and efficient bash CGI web script to transfer and exchange files privately. It uploads the file on your server, and generates a link that you can send to other people to download the file with no need to create an account. 
+
+<img src='doc/screenshot.png'>
 
 ## Features
 
