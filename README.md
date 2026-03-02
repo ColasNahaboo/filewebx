@@ -54,6 +54,13 @@ If you are using it from an IP address defined in your web server config (in the
 
 ## Manual administration
 If you want to perform some other administrative action, they must be done for now on the server itself, as root or as the web server account.
+Basically, with the example settings:
+- The main script `aiV6shujahla4ei` is in `/www/filewebx/cgi/` as well as `cgibashopts`
+- Guest scripts are symbolic links to `aiV6shujahla4ei`  in `/www/filewebx/cgi/` named `guestpassword~guestid`
+- Files are stored in the `/www/filewebx/data/` directory for the admin account, and `/www/filewebx/data/~guestid/` for the guests
+- Expiration dates of a file is the date of a dot-prefixed empty file of the same name
+
+Thus, you can manually perform actions such as:
 - **removing a guest account** `guestid`
   ```
   rm -r /www/filewebx/{data/~guestid,cgi/*~guestid};
