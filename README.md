@@ -34,7 +34,7 @@ It did not include the SSL certificates, install them as you are used to. I pers
 
 3. create your configuration file, e.g. `myconfig.conf` by following the examples in [doc/filewebx-sample.conf](doc/filewebx-sample.conf).
 
-4. run the install `INSTALL myconfig.conf` or install simply by hand by looking at it.
+4. run the install `INSTALL myconfig.conf` or install simply by hand by looking at it. The cgibashopts used is the standard one that can also be found at [cgibashopt GitHub repository](https://github.com/ColasNahaboo/cgibashopts)
 
 5. install a crontab entry to clean daily the obsolete files after their expiraton date, e.g:
 ```
