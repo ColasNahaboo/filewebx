@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2155
-VERSION=0.0.7
+VERSION=1.0.0
 PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
