@@ -1,7 +1,8 @@
 # filewebx
 
-<img src="doc/filewebx-logo-240x200.png" align="right" width="120" height="100">
+<img src="doc/filewebx-logo-240x200.png" align="right" width="240" height="200">
 A simple and efficient bash CGI web script to transfer and exchange files privately. It uploads the file on your server, and generates a link that you can send to other people to download the file with no need to create an account. 
+
 
 <img src='doc/screenshot.png'>
 
@@ -34,12 +35,16 @@ It did not include the SSL certificates, install them as you are used to. I pers
 
 3. create your configuration file, e.g. `myconfig.conf` by following the examples in [doc/filewebx-sample.conf](doc/filewebx-sample.conf).
 
-4. run the install `INSTALL myconfig.conf` or install simply by hand by looking at it. The cgibashopts used is the standard one that can also be found at [cgibashopt GitHub repository](https://github.com/ColasNahaboo/cgibashopts)
+4. copy the file `cgibashopts` from  [cgibashopt GitHub repository](https://github.com/ColasNahaboo/cgibashopts) into the `/www/filewebx/cgi/` directory on your server. It does not need to have the executable bit on.
 
 5. install a crontab entry to clean daily the obsolete files after their expiraton date, e.g:
 ```
 12 03 * * * curl -s '`https://filewex.mysite.com/cgi/aiV6shujahla4ei?mode=clean'
 ```
+
+6. run the install `INSTALL myconfig.conf` or install simply by hand by copying the file `filewebx` as `/www/filewebx/cgi/aiV6shujahla4ei` directory on your server if `aiV6shujahla4ei` is the unguessable name you have chosen (aka your "admin password").
+
+**Updating**: just re-run step 6.
 
 ## Usage
 

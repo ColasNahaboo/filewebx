@@ -5,15 +5,17 @@ err(){ echo "$*"; exit 1;}
 name=
 dest=
 url=
-if [[ -n "$1" ]]; then . "$1"
-elif [[ -s .filewebx.conf ]]; then . .filewebx.conf
+conf=()
+if [[ -n "$1" ]]; then conf=("$1")
+elif [[ -s .filewebx.conf ]]; then conf=(.filewebx.conf)
 else err "Please make a .filewebx.conf config file, see filewebx-sample.conf"
 fi
+. "${conf[0]}"
 name="${name//[^_[:alnum:]/}"
 [[ -z "$name" ]] && err "Empty or invalid name"
 (( ${#name} < 8)) && err "Admin nmae too short!"
 
-for i in INSTALL filewebx *.conf; do
+for i in INSTALL filewebx "${conf[@]}" *.conf; do
     [[ "${i:0:1}" == '*' ]] && continue
     grep -q '^#!/bin/bash' "$i" || continue
     if ! bash -n "$i"; then
@@ -29,7 +31,6 @@ for i in INSTALL filewebx *.conf; do
 done
 
 rsync -ai --out-format="%n" filewebx "$dest/$name"
-rsync -ai --out-format="%n" cgibashopts "$dest"
 
 echo "Installed at ${url:-YOUR-CGI-BIN-URL}/$name"
 

@@ -374,8 +374,8 @@ printlogs(){
             last="$ip"
             rowcolor "$ip"
         fi
-        host=$(host "$ip")
-        echo "<tr class=log-line style='background-color:$color'><td class=date>$date<td class=ip>$ip<td class=host>$host<td class=useragent>$agent</tr>"
+        getiphostname "$ip"           # sets the global var iphostname
+        echo "<tr class=log-line style='background-color:$color'><td class=date>$date<td class=ip>$ip<td class=host>$iphostname<td class=useragent>$agent</tr>"
     done
     echo "<tr><td colspan=4>&nbsp;</td></tr>"
 }
@@ -454,6 +454,20 @@ rowscol[20]='hsl(  0, 60%, 95%)'
 rowscolxtra='#eee'
 rowkey=0
 rowscolmax=20
+
+# cache calls to host in a static ass. array, a map[ipadress] = hostname
+declare -A iphostnames
+iphostname=                     # global used for return value
+getiphostname(){
+    local ip="$1"
+    iphostname="${iphostnames[$1]}"
+    if [[ -n "$iphostname" ]]; then  # cached
+        return
+    else                    # allocate next iphostname from the predefined ones
+        iphostname=$(host "$ip")
+        iphostnames[$ip]="$iphostname"
+    fi
+}
 
 ################################# Admin mode
 
