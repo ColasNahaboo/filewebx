@@ -26,12 +26,10 @@ A simple and efficient bash CGI web script to transfer and exchange files privat
 ```
 mkdir -p /www/filewebx/{data,cgi};  chown -R www-data:www-data /www/filewebx
 ```
-2. configure it. See for instance how to do it for:
-  - **apache**, at the url https://filewex.mysite.com and a directory `/www/filewebx` and the name `aiV6shujahla4ei` in the file [doc/apache-sample.conf](apache-sample.conf)
-  - **nginx**, in the example [doc/nginx-sample.conf](doc/nginx-sample.conf) (needs fcgiwrap)
-  - **openlitespeed**, in the example [doc/openlitespeed-sample.conf](doc/openlitespeed-sample.conf)
-  - **caddy**, in the example [doc/caddy-sample.conf](doc/caddy-sample.conf} (needs fcgiwrap and the cgi plsugin)
+2. configure it. See for instance how to do it for apache, at the url https://filewex.mysite.com and a directory `/www/filewebx` and the name `aiV6shujahla4ei` in the file [doc/apache-sample.conf](apache-sample.conf).
 It did not include the SSL certificates, install them as you are used to. I personally use a wildcard sertificate from [let's encrypt](https://letsencrypt.org/) that I set in the main apache config, so I do not need to mention it in my virtual hosts.
+
+For other servers (nginx, litespeed, caddy, ...) just ask your favorite AI to convert `doc/apache-sample.conf` into a configuration specific to your setup.
 
 3. create your configuration file, e.g. `myconfig.conf` by following the examples in [doc/filewebx-sample.conf](doc/filewebx-sample.conf).
 
@@ -64,6 +62,22 @@ Basically, with the example settings:
 - Guest scripts are symbolic links to `aiV6shujahla4ei`  in `/www/filewebx/cgi/` named `guestpassword~guestid`
 - Files are stored in the `/www/filewebx/data/` directory for the admin account, and `/www/filewebx/data/~guestid/` for the guests
 - Expiration dates of a file is the date of a dot-prefixed empty file of the same name
+
+```
+/www/filewebx/
+          |—— cgi/
+              |—— aiV6shujahla4ei
+              |—— ieda6Waiwan9ath~Bob
+              |—— cgibashopts
+          |—— data/
+              |—— file1
+              |—— .file1
+              |—— file 2
+              |—— .file2
+              |—— Bob/
+                  |—— file3
+                  |—— .file3
+```
 
 Thus, you can manually perform actions such as:
 - **removing a guest account** `guestid`
