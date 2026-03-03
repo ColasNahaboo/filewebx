@@ -29,7 +29,7 @@ mkdir -p /www/filewebx/{data,cgi};  chown -R www-data:www-data /www/filewebx
 2. configure it. See for instance how to do it for apache, at the url https://filewex.mysite.com and a directory `/www/filewebx` and the name `aiV6shujahla4ei` in the file [doc/apache-sample.conf](apache-sample.conf).
 It did not include the SSL certificates, install them as you are used to. I personally use a wildcard sertificate from [let's encrypt](https://letsencrypt.org/) that I set in the main apache config, so I do not need to mention it in my virtual hosts.
 
-For other servers (nginx, litespeed, caddy, ...) just ask your favorite AI to convert `doc/apache-sample.conf` into a configuration specific to your setup.
+For other servers (nginx, litespeed, caddy, ...) just ask your favorite AI to convert `doc/apache-sample.conf` into a configuration specific to your setup. But note that the See logs functionality will not work as the function `main-logs` should be adapted to your logs. Contact me with a sample of your file downloaded logs if needed.
 
 3. create your configuration file, e.g. `myconfig.conf` by following the examples in [doc/filewebx-sample.conf](doc/filewebx-sample.conf).
 
@@ -59,7 +59,7 @@ If you are using it from an IP address defined in your web server config (in the
 If you want to perform some other administrative action, they must be done for now on the server itself, as root or as the web server account.
 Basically, with the example settings:
 - The main script `aiV6shujahla4ei` is in `/www/filewebx/cgi/` as well as `cgibashopts`
-- Guest scripts are symbolic links to `aiV6shujahla4ei`  in `/www/filewebx/cgi/` named `guestpassword~guestid`
+- Guest scripts are symbolic links to `aiV6shujahla4ei`  in `/www/filewebx/cgi/` named `guestpassword~guestid` (e.g: `ieda6Waiwan9ath~Bob`)
 - Files are stored in the `/www/filewebx/data/` directory for the admin account, and `/www/filewebx/data/~guestid/` for the guests
 - Expiration dates of a file is the date of a dot-prefixed empty file of the same name
 
@@ -72,31 +72,32 @@ Basically, with the example settings:
           |—— data/
               |—— file1
               |—— .file1
-              |—— file 2
+              |—— file2
               |—— .file2
-              |—— Bob/
+              |—— ~Bob/
                   |—— file3
                   |—— .file3
 ```
 
 Thus, you can manually perform actions such as:
-- **removing a guest account** `guestid`
+- **removing a guest account** `Bob`
   ```
-  rm -r /www/filewebx/{data/~guestid,cgi/*~guestid};
+  rm -r /www/filewebx/{data/~Bob,cgi/*~Bob};
   ```
 - **removing an uploaded file**  `my-sent-file.foo`
   - from the admin account: `rm /www/filewebx/data/my-sent-file.foo`
-  - from a guest account guestid `rm /www/filewebx/data/~guestid/my-sent-file.foo`
+  - from a guest account guestid `rm /www/filewebx/data/~Bob/my-sent-file.foo`
 - **changing the expiration date of a file** The expiration date of a file is the date of the corresponding "dotfile", an empty file with the same name as the file but prefixed by a dot. So, for instance, to set the expiration date of `my-sent-file.foo` to April 1st, 2030, do a:
    `touch -d 2030-04-01 /www/filewebx/data/.my-sent-file.foo`
-   Or, for a guestid file, `touch -d 2030-04-01 /www/filewebx/data/~guestid/.my-sent-file.foo`
+   Or, for a guestid file, `touch -d 2030-04-01 /www/filewebx/data/~Bob/.my-sent-file.foo`
    Removing the dotfile will reset the expiration date 100 days in the future during the daily clean
 - **changing the password of a guest account** in case it is compromised, just change the "password" part (before the tilde) of the cgi script link. E.g.:
-  `mv /www/filewebx/cgi/gei5je8Ha7Ba~guestid /www/filewebx/cgi/fohthie9Owee~guestid`
+  `mv /www/filewebx/cgi/ieda6Waiwan9ath~Bob /www/filewebx/cgi/fohthie9Owee~Bob`
 
 ## License
 MIT License - (c) 2026 Colas Nahaboo.
 In a nutshell: do whatever you want with this, and please credit me, but expect no warranty.
 
 ## Release notes
+- v1.0.1 2026-03-03 hostname resolution cached
 - v1.0.0 2026-03-02 First public release
