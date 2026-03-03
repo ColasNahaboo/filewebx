@@ -99,5 +99,4 @@ MIT License - (c) 2026 Colas Nahaboo.
 In a nutshell: do whatever you want with this, and please credit me, but expect no warranty.
 
 ## Release notes
-- v1.0.1 2026-03-03 hostname resolution cached
-- v1.0.0 2026-03-02 First public release
+- v1.0.0 2026-03-03 First public release
