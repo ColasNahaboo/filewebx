@@ -26,6 +26,8 @@ A simple and efficient bash CGI web script to transfer and exchange files privat
 ```
 mkdir -p /www/filewebx/{data,cgi};  chown -R www-data:www-data /www/filewebx
 ```
+Note: for convenience, it is advised to make your account on the server a member of the `www-data` group.
+
 2. configure it. See for instance how to do it for apache, at the url https://filewex.mysite.com and a directory `/www/filewebx` and the name `aiV6shujahla4ei` in the file [doc/apache-sample.conf](apache-sample.conf).
 It did not include the SSL certificates, install them as you are used to. I personally use a wildcard sertificate from [let's encrypt](https://letsencrypt.org/) that I set in the main apache config, so I do not need to mention it in my virtual hosts.
 

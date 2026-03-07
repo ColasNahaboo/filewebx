@@ -90,19 +90,16 @@ img.logo {vertical-align: sub}
     background-color: #f8f9fa;
     border-bottom: 1px solid #ddd;
 }
-
 .brand {
     font-weight: bold;
     font-size: 1.2em;
 }
-
 .nav-tabs a {
     margin-left: 20px;
     text-decoration: none;
     color: #007bff;
     padding: 5px 10px;
 }
-
 .nav-tabs a.active {
     border-bottom: 2px solid #007bff;
     font-weight: bold;
@@ -113,6 +110,19 @@ img.logo {vertical-align: sub}
     border-radius: 5px 5px 0 0;
     border: 1px solid #ccc;
     border-bottom: none;
+}
+input,textarea {padding: 0.2rem 0.2rem}
+span.status {font-size:1.2rem; color: #888888}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto; /* Let content determine width */
+    background: white;
+}
+th, td {
+    text-align: left;
+    padding: 8px 12px;
+    border: 1px solid #e1e4e8;
 }
 /*============================================== Logs style */
 .log-line {
@@ -147,19 +157,7 @@ table.fwxlog td.host {font-size:small}
 table.fwxlog td.useragent {font-size:small; color:#888888}
 table.fwxlog td.new {background-color:yellow}
 code.fwxcode {font-size: large; background-color:#ffffdd}
-input,textarea {padding: 0.2rem 0.2rem}
-span.status {font-size:1.2rem; color: #888888}
-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: auto; /* Let content determine width */
-    background: white;
-}
-th, td {
-    text-align: left;
-    padding: 8px 12px;
-    border: 1px solid #e1e4e8;
-}'
+'
 
 # from a 32x32 png image with tranparent bg, via: base64 -w 0 imagefile.png
 logo='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'
@@ -420,8 +418,10 @@ rowcolor(){
     color="${rowkeys[$1]}"
     if [[ -n "$color" ]]; then  # cached
         return
-    elif ((rowkey > rowscolmax)); then # overflow, just evit the extra color
-        color="$rowscolxtra"
+    elif ((rowkey > rowscolmax)); then # overflow, just loop avoid 1rst
+        color="${rowscol[1]}"
+        rowkey=2
+        rowkeys[$ip]="$color"
     else                        # allocate next color from the predefined ones
         color="${rowscol[$rowkey]}"
         ((rowkey++))
@@ -469,6 +469,8 @@ getiphostname(){
         return
     else                    # allocate next iphostname from the predefined ones
         iphostname=$(host "$ip")
+        [[ $iphostname =~ 'domain name pointer '(.+)[.]$ ]] &&
+            iphostname="${BASH_REMATCH[1]}"
         iphostnames[$ip]="$iphostname"
     fi
 }
