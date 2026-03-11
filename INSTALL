@@ -31,6 +31,7 @@ for i in INSTALL filewebx "${conf[@]}" *.conf; do
 done
 
 rsync -ai --out-format="%n" filewebx "$dest/$name"
+rsync -ai --out-format="%n" filewebdl "$dest/_"
 
 echo "Installed at ${url:-YOUR-CGI-BIN-URL}/$name"
 
