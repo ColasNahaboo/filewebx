@@ -588,8 +588,8 @@ random_string() { # LC_ALL=C avoids unicode multibyte mess
 }
 
 htmlencode() {
-    local str="${1//&/&amp;}"; str="${str//</&lt;}"; str="${str//>/&gt;}"
-    str="${str//\"/&quot;}"; str="${str//\'/&#39;}"; echo "$str"
+    local str="${1//&/\&amp;}"; str="${str//</\&lt;}"; str="${str//>/\&gt;}"
+    str="${str//\"/\&quot;}"; echo "${str//\'/\&#39;}"
 }
 
 ###################### CSS Style
