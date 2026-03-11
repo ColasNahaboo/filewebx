@@ -1,210 +1,72 @@
 #!/bin/bash
-# shellcheck disable=SC2155
-VERSION=1.0.0
+# shellcheck disable=SC2155,SC1090,SC1091
+VERSION=2.0.0
 PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
 
-###################### CSS Style
-style='
-/*============================================== Common style */
-:root {
-    --bg: #fcfcfc;           /* Soft off-white */
-    --sidebar-bg: #f0f2f5;   /* Light gray for structure */
-    --text: #24292f;         /* Deep charcoal for readability */
-    --timestamp: #6e7781;    /* Muted gray */
-    --ip: #0969da;           /* Clean blue */
-    --path: #bc4c00;         /* Terracotta/Orange */
-    --border: #d0d7de;       /* Standard light border */
-        --highlight: #fff8c5;    /* Pale yellow for hover/focus */
-}
-body {
-    background-color: var(--bg);
-    color: var(--text);
-    font-family: Proxima Nova, system-ui, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, -apple-system, Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    }
-.container { margin: 0 auto; padding: 20px; }
-.minicontainer { padding: 10px 20px; }
-pre, code, .log-line {
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-    font-size: 13px;
-}
-/* Sticky Header */
-.header {
-    position: sticky;
-    top: 0;
-    background: rgba(252, 252, 252, 0.9);
-    backdrop-filter: blur(5px);
-    border-bottom: 1px solid var(--border);
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 1000;
-}
-h1 { font-size:170%; font-weight:normal; margin-top: 10px;margin-bottom:8px; }
-h2 { font-size:145%; font-weight:normal; margin-top: 13px;margin-bottom:4px; }
-h3 { font-size:130%; font-weight:normal; margin-top: 10px;margin-bottom:3px;}
-h4 { font-size:120%; font-weight:bold;   margin-top: 9px;margin-bottom:2px;}
-h5 { font-size:110%; font-weight:bold;   margin-top: 8px;margin-bottom:1px;}
-h6 { font-size:95%; font-weight:bold;    margin-top: 7px;margin-bottom:0px;}
-/* Action Buttons */
-.btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: #fff;
-    color: var(--ip);
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 14px;
-}
-.btn:hover { background: #f6f8fa; }
-.btn2 {background: #afa;}
-.btn2:hover {background: #8f8;}
-.resultok {
-    background-color: #f0fff0;
-    border-left-color: green;
-    border-left-style:solid;
-    border-left-width:4px;
-    padding:16px
-}
-.resultfail {
-    background-color: #fff0f0;
-    border-left-color: red;
-    border-left-style:solid;
-    border-left-width:4px;
-    padding:16px
-}
-p.version {color: #888; font-size:small}
-span.guest {font-weight: normal; color:#888; font-size:small}
-img.logo {vertical-align: sub}
-/*============================================== Navigation */
-.main-header {
-    display: flex;
-    align-items: baseline; /* Aligns text bottoms nicely */
-    /* justify-content: space-between; /* Pushes brand left, nav right */
-    padding: 10px 20px;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #ddd;
-}
-.brand {
-    font-weight: bold;
-    font-size: 1.2em;
-}
-.nav-tabs a {
-    margin-left: 20px;
-    text-decoration: none;
-    color: #007bff;
-    padding: 5px 10px;
-}
-.nav-tabs a.active {
-    border-bottom: 2px solid #007bff;
-    font-weight: bold;
-    color: #333;
-}
-.nav-tabs a {
-    background: #eee;
-    border-radius: 5px 5px 0 0;
-    border: 1px solid #ccc;
-    border-bottom: none;
-}
-input,textarea {padding: 0.2rem 0.2rem}
-span.status {font-size:1.2rem; color: #888888}
-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: auto; /* Let content determine width */
-    background: white;
-}
-th, td {
-    text-align: left;
-    padding: 8px 12px;
-    border: 1px solid #e1e4e8;
-}
-/*============================================== Logs style */
-.log-line {
-    padding: 4px 12px;
-    border-left: 3px solid #aaa;
-    border-bottom: 1px solid #f0f0f0;
-    white-space: pre-wrap;
-    transition: all 0.1s ease;
-}
-.log-line:nth-child(even) { background-color: #f0f0ff; }
-.log-line:nth-child(odd)  { background-color: #fafaff; }
-.log-line:hover {
-    background-color: var(--highlight);
-    border-left: 3px solid var(--ip);
-}
-tr.unparsed {background-color: #fcfcfc; }
-table.fwxlog td {padding: 0.1rem 0.4rem}
-table.fwxlog th {background-color:#fafaff; padding: 4px;}
-table.fwxlog th.file {
-    background-color:#f0f0ff;text-align: left; font-weight:bold;
-    border-left: 3px solid #aaa;
-}
-table.fwxlog tr.legend th {
-    font-weight: 500; font-size:80%; color:#aaa;
-}
-table.fwxlog tr th.expire {
-    font-weight: 400; font-size:80%; color:#555;background-color:#f0f0ff;
-}
-table.fwxlog tr.legend { border-left: 3px solid #aaa;}
-table.fwxlog td.date {font-weight:bold}
-table.fwxlog td.host {font-size:small}
-table.fwxlog td.useragent {font-size:small; color:#888888}
-table.fwxlog td.new {background-color:yellow}
-code.fwxcode {font-size: large; background-color:#ffffdd}
-'
-
-# from a 32x32 png image with tranparent bg, via: base64 -w 0 imagefile.png
-logo='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'
+# globals. Can be redefined in the sourced file ../filewebx.conf
+configfile='../filewebx.conf'
+validity=100
+passlen=12                # length of the random "passwords", 10^14 combinations
+declare -g root_url adminpass url urld data nl sp version gid isadmin isgadmin
+lastip="$REMOTE_ADDR"
 
 ###################### Common
 
-# shellcheck disable=SC1091
-. cgibashopts
-err() { echo "***ERROR: $*" >&2; exit 1; }
-nl=$'\n'
-version="<p class=version><a href='$source'>filewebx</a> v$VERSION, $copyright</p>"
-if [[ $SCRIPT_NAME =~ /([[:alnum:]]+)([~][-_.[:alnum:]]+)$ ]]; then
-    fwxid="/${BASH_REMATCH[2]}"       # fwxid is '/~id'
-    isadmin=false
-    # fwxname="${BASH_REMATCH[1]}"    # actually a password, not used
-else
-    fwxid=                            # admin
-    isadmin=true
-    # fwxname="${SCRIPT_NAME##*/}"    # actually a password, not used
-fi
-data=$(realpath "../data$fwxid")
-[[ -d "$data" ]] || mkdir -p "$data"
-defvalidity=100
-validity="$defvalidity"
-
-header(){
-    local mode="$1" title="${PROGNAME^}: ${1^}" admintab guestlabel
-    if $isadmin; then
-        admintab="<a href='?mode=admin' class='tab$(is-active admin "$mode")'>Admin</a>"
+init(){
+    root_url="$REQUEST_SCHEME://$HTTP_HOST"
+    adminpass="${SCRIPT_NAME##*/}"   # adminpass or guestpass~guestid
+    url="$root_url$SCRIPT_NAME"      # its URL
+    urld="$root_url/_"               # URL of file downloader mini-script
+    data=$(realpath '../data')       # metadata, logs, caches, guest ids...
+    nl=$'\n'; sp='&nbsp;'            # some useful constants
+    version="<p class=version><a href='$source'>${source##*/}</a> v$VERSION, $copyright</p>"
+    # are we the admin, or a guest account?
+    if [[ $SCRIPT_NAME =~ /([[:alnum:]]+)([~][-_.[:alnum:]]+)$ ]]; then
+        gid="/${BASH_REMATCH[2]}"       # guest id, in the form "/~guestid"
+        isadmin=false
+        data="$data$gid"
+        mkdir -p "$data"
+        urld="$urld$gid"
+        meta-read-raw "$data/meta"
+        [[ -n "${metas[admin]}" ]] && isgadmin=true || isgadmin=false
+        adminpass=$(readlink "${SCRIPT_NAME##*/}")
     else
-        guestlabel=" <span class=guest>[${fwxid#*~}]</span>"
-        title="$title [${fwxid#*~}]"
+        gid=                            # admin
+        isadmin=true
+    fi
+}
+
+err() { echo "***ERROR: $*" >&2; exit 1; }
+
+# args: subtitle comma-separated-tabs (active one postfixed by !)
+header(){
+    local title="${PROGNAME}${1:+: }${1}" tabs=",$2," guestlabel titlelabel
+    if ! $isadmin; then
+        guestlabel=" <span class=guest>[${gid#*~}]</span>"
+        titlelabel=" [${gid#*~}]"
     fi
     echo "Content-Type: text/html$nl$nl<html><head>
 <link rel=icon type='image/png' sizes='32x32' href='data:image/png;base64,$logo'>
-<style>$style</style><title>$title</title>
-</head><body>
-<header class='main-header'>
-  <div class='brand'><img class=logo src='data:image/png;base64,$logo'> ${PROGNAME^}$guestlabel</div>
-  <nav class='nav-tabs'>
-    <a href='?mode=upload' class='tab$(is-active upload "$mode")'>Upload files</a>
-    <a href='?mode=logs' class='tab$(is-active logs "$mode")'>See logs</a>
-    $admintab
-    <a href='?mode=' class='tab' target='_blank'>New Window</a>
-  </nav>
-</header>
-"
+<style>$style</style><title>$title$titlelabel</title>
+</head><body><header class='main-header'>
+<div class='brand'><a href='$url'><img class=logo src='data:image/png;base64,$logo'> $title$guestlabel</a></div><nav class='nav-tabs'>"
+    [[ $tabs =~ ,upload(!)?, ]] &&
+        echo "<a href='$url' class='tab${BASH_REMATCH[1]:+ active}'>Upload</a>"
+    [[ $tabs =~ ,logs(!)?, ]] &&
+        echo "<a href='$url?mode=logs' class='tab${BASH_REMATCH[1]:+ active}'>Logs</a>"
+    if [[ $tabs =~ ,admin(!)?, ]]; then
+        if $isadmin; then
+            echo "<a href='$url?mode=admin' class='tab${BASH_REMATCH[1]:+ active}'>Admin</a>"
+        elif "$isgadmin"; then
+            echo "<a href='$adminpass?mode=admin' class='tab${BASH_REMATCH[1]:+ active}'>Main Admin Account</a>"
+        fi
+    fi
+    # shellcheck disable=SC2154        # FORM_xxx are defined by cgibashopts
+    [[ $tabs =~ ,guest(!)?, ]] &&
+        echo "<a href='$url' class='tab${BASH_REMATCH[1]:+ active}'>Account ${FORM_gid}</a>"
+    echo "</nav></header>"
 }
 is-active(){
     [[ "$1" == "$2" ]] && echo " active"
@@ -212,65 +74,71 @@ is-active(){
 footer(){
     echo "<hr><div class=minicontainer>$version</div></body></html>"
 }
+info(){
+    # shellcheck disable=SC2154 # FORM_xxx are defined by cgibashopts
+    local mess="${1:-$FORM_info}" class=info
+    [[ -n "$mess" ]] || return
+    [[ $mess =~ ^([[:alnum:]]+): ]] && class="$class ${BASH_REMATCH[1]}"
+    [[ "$class" == info ]] && class="$class ok"
+    echo "<div class='$class'>${mess^}</div>"
+}
+redirect(){
+    echo "Location:$1$nl"
+    exit 0
+}
 
-################################# Main filewebx mode
+################################# Main upload mode
 
-main() {
-    local continued
-    header upload
+gui-upload(){
+    local tabs="$1" pass ulfile filename size file metas another
+    header '' "$tabs"
+    info
+    # Section: last uploaded file results
     if [ -n "${FORM_file:-}" ]; then
-        continued=" another"
-        echo "<div class=minicontainer>"
-	if [ -s "$CGIBASHOPTS_DIR/file" ]; then
+        ulfile="$CGIBASHOPTS_DIR/file"
+        another=" another"
+        echo "<div class=container>"
+	if [ -s "$ulfile" ]; then
 	    filename="${FORM_file##*/}"
-            # only alphanums and [-_.] and avoid starting with dot or hyphen
-            filename="${filename//[^-_.~A-Za-z0-9]/}"
-            [[ $filename =~ ^[-.] ]] && filename="_$filename"
-            # safety: avoid too easily guessable names, or empty ones
-            (( ${#filename} < 10 )) && filename="$(random_string 8)-$filename"
-            file="$data/$filename"
-            size=$(stat -c %s "$file")
-            if check-complete "$file" "$size"; then
-	        mv "$CGIBASHOPTS_DIR/file" "$file"
-                chmod a+rw "$file"
-                set-expiration "$validity" "$data" "$filename"
-	        name=$(urlencode "$filename")
-                hsize=$(human_size "$size")
-	        echo "<p>File uploaded ($hsize), can be downloaded as:<p class=resultok>https://${SERVER_NAME}$fwxid/$name</p>"
-	        echo "<p>Will be removed in $validity days.</p>"
+            size=$(stat -c %s "$ulfile")
+            if check-complete "$ulfile" "$size"; then # file is complete
+                pass=$(random_string "$passlen")
+                file="$data/$pass,$filename"
+                meta="$data/$pass.meta"
+	        mv "$ulfile" "$file"
+                meta-reset
+                metas[expire]="$(date -d "+$validity days" --iso)"
+                metas[upload]="$(date +%Y-%m-%dT%H:%M:%S)"
+                metas[name]="$filename"
+	        metas[uname]="$(urlencode "$filename")"
+	        metas[hname]="$(htmlencode "$filename")"
+                metas[hsize]="$(human_size "$size")"
+                # we use dots in urls, safer than commas
+                metas[url]="${urld}/$pass.${metas[uname]}"
+                metas[surl]="${urld}/$pass"
+                meta-write-raw "$meta"
+                info "success!<p>
+	        File uploaded (${metas[hsize]}), can be downloaded as:
+                <p class=resultok><b><code>${metas[url]}</code></b><br>
+                Short URL:<br><b><code>${metas[surl]}</code>
+                </p>
+	        Will be removed in $validity days, on ${metas[expire]}."
 	    else
-	        echo "<p class=resultfail>***Error, file transfer interrupted!</p>"
+	        info "error: file transfer interrupted!"
 	    fi
         else
-	        echo "<p class=resultfail>***Error, no file uploaded or empty file</p>"
+	        info "error: file not uploaded or empty!"
         fi
         echo "</div><p><hr><p>"
     fi
-    form_page "$continued"
-    footer
-}
 
-check-complete(){
-    local file="$1" size="$2" expected
-    # heuristics: file size + 27% encoding + 3000 bytes of headers
-    ((expected = 3000 + (size * 127) / 100))
-    if (("$HTTP_CONTENT_LENGTH" < expected)); then
-        return 1
-    else
-        return 0
-    fi
-}
-
-form_page() {
-    local continued="$1"
-    echo "
-    <style>#upload-button { display: none; }</style>
-    <div id='progress-container' class=minicontainer style='display:none; width:600px; border:1px solid #ccc; margin-bottom:10px;'>
+    # Section: upload a new file
+    echo "<style>#upload-button { display: none; }</style>
+    <div id='progress-container' class=container style='display:none; width:600px; border:1px solid #ccc; margin:20px;'>
         <div id='progress-bar' style='width:0%; height:20px; background-color:green; color:white; text-align:center;'>0%</div>
-    </div>
-    <form id='upload-form' method='POST' enctype='multipart/form-data' class=container>
-        <table>
-            <tr><td>Select$continued File: <td><input class=btn type='file' id='file-input' name='file' size='64' onchange='checkFile()'>
+    </div></div>
+    <form id='upload-form' method='POST' enctype='multipart/form-data' class=container><table>
+         <tr><td>Select$another file to upload: <td><input class=btn type='file' id='file-input' name='file' size='64' onchange='checkFile()'>
             <tr id='upload-button'><td>Then click:<td><input class='btn btn2' type='submit' value='Upload'> 
         </table>
     </form>
@@ -303,15 +171,259 @@ form_page() {
     function checkFile() {
         var fileInput = document.getElementById('file-input');
         var uploadButton = document.getElementById('upload-button');
-        
         if (fileInput.files.length > 0) {
             uploadButton.style.display = 'table-row';
         } else {
             uploadButton.style.display = 'none';
         }
     }
-    </script>
-    "
+    </script>"
+    # Section: already uploaded
+    local now=$(date +%s) days desc last
+    echo "<div class=container>Already uploaded:<ul>"
+        # shellcheck disable=SC2010,SC2012   # Allow ls instead of find
+        for meta in "$data"/*.meta; do
+            [[ -e "$meta" ]] || continue
+            pass="${meta##*/}"; pass="${pass%.*}"
+            meta-read-raw "$meta"
+            ((days = ($(date -d "${metas[expire]}" +%s) - now) / 86400 ))
+            desc="<li><!--${metas[upload]}--><a href='?mode=log&pass=$pass' title='See its logs'>${metas[hname]}</a>$sp$sp$sp<span class=status>uploaded on ${metas[upload]%%T*}, expires in $days days on ${metas[expire]}</span>"
+            if [[ -s "${meta%.*}.log" ]]; then
+                last=$(tail -1 "${meta%.*}.log" 2>/dev/null | cut -f 1 -d $'\t')
+                echo "$desc, last log on $last"
+            else
+                echo "$desc <span class=guest>(no access logs yet)</span>"
+            fi                  
+        done | sort -r
+        echo "</ul></div>"
+}
+
+gui-log(){
+    local tabs="$1" pass="$2" now=$(date +%s) meta log pass days upped
+    header '' "$tabs"
+    info
+    # thus our own IP is in the dim 1rst color, to better spot others
+    rowcolor "$REMOTE_ADDR"
+    meta="$data"/"$pass".meta
+    [[ -e "$meta" ]] || redirect "?info=error:+edit+unknown+file+id:+$pass"
+    log="${meta%.meta}.log"
+    meta-read-raw "$meta"
+    upped="${metas[upload]}"
+    ((days = ($(date -d "${metas[expire]}" +%s) - now) / 86400 ))
+    # Section: Edit file metadata
+    echo "<form method=POST enctype='multipart/form-data' class=container>
+          <b>${metas[hname]}</b><ul><li><span class=status>uploaded on ${upped%%T*}</span><li><span class=status>URL:</span> <b><code>${metas[url]}</code></b><li><span class=status>Short URL:</span> <b><code>${metas[surl]}</code></b></ul>
+          <input type=hidden name=savefile value='$pass'>
+          <table>
+          <tr><td>Note:<td colspan=2><input type=text name=note size=64 value='${metas[note]}'>
+          <tr><td>Expires:<td colspan=2><input type=text name=expire size=11 value='${metas[expire]}' pattern='^\d{4}-\d{2}-\d{2}|[0-9]*[1-9][0-9]*$' title='Enter a date (YYYY-MM-DD) or a number of days'>
+          (in $days days) <span class=status>Enter a number of days or the expiration date as YYYY-MM-DD</span>
+          <tr><td colspan=3><input class='btn' type='submit' value='Modify'>
+          </table></form>"
+    # Section: log
+    echo "<div class=minicontainer>Downloads:</div><table class='fwxlog mono'>"
+    printlogs "$meta" "$log" "$pass" "$now" 
+    echo "</table>"
+    # Section: delete file
+    echo "<form method=POST enctype='multipart/form-data' class=container>
+          Or delete it:<p>
+          <input type=hidden name=delfile value='$pass'>
+          <input class='btn' type='submit' value='Delete'>
+          </table></form>"
+    footer
+}
+
+
+########### META modification, then redirect to log page
+
+save-file(){
+    local pass="$1" note="$2" exp="$3" meta metas expire
+    meta="$data"/"$pass".meta
+    [[ -e "$meta" ]] || redirect "?info=error:+edit+unknown+file+id:+$pass"
+    meta-read-raw "$meta"
+    if [[ $exp =~ ^[[:space:]]*([[:digit:]]+)[[:space:]]*$ ]]; then
+        metas[expire]=$(date -d +\ "${BASH_REMATCH[1]}"\ days --iso)
+    elif [[ $exp =~ ^[[:space:]]*([[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2})[[:space:]]*$ ]]; then
+        metas[expire]="${BASH_REMATCH[1]}"
+    fi
+    metas[note]=$(htmlencode "$note")
+    meta-write-raw "$meta"
+    redirect "?mode=log&pass=$pass&info=file+info+saved"
+}
+
+########### Delete file
+
+del-file(){
+    local pass="$1" trash="$data/trash"
+    meta="$data"/"$pass".meta
+    [[ -e "$meta" ]] || redirect "?info=error:+delete+unknown+file+id:+$pass"
+    mkdir -p "$trash"
+    mv "${meta%.meta}"[.,]*  "$trash"
+    redirect "?mode=upload&info=file+deleted"
+}
+
+gui-logs(){
+    local tabs="$1" now=$(date +%s) meta metafiles log pass
+    header '' "$tabs"
+    info
+    echo "<div class=minicontainer>Downloads:</div><table class=fwxlog>"
+    # thus our own IP is in the dim 1rst color, to better spot others
+    rowcolor "$REMOTE_ADDR"
+    metafiles=("$data"/*.meta)
+    for meta in "${metafiles[@]}"; do
+        [[ -e "$meta" ]] || continue
+        log="${meta%.meta}.log"
+        pass="${meta##*/}"; pass="${pass%.*}"
+        printlogs "$meta" "$log" "$pass" "$now"
+    done
+    echo "</table>"
+    footer
+}
+
+# print all the log for one file, but on a single line for sorting by date
+printlogs(){
+    local meta="$1" log="$2" pass="$3" now="$4"
+    local date ip host agent qhost qagent days
+    meta-read-raw "$meta"
+    ((days = ($(date -d "${metas[expire]}" +%s) - now) / 86400 ))
+    echo -n "<!--${metas[upload]}--><tr class=file><th class=file colspan=3><a href='?mode=log&pass=$pass' title='more info'>${metas[hname]}</a></th><th class=expire>Expires in $days days on ${metas[expire]}</tr>" # sort key
+    if ! [[ -s "$log" ]]; then
+        echo "<tr><td colspan=4><span class=status>no downloads yet</span>"
+        return
+    fi
+    echo -n "<tr class=legend><th>Date+Time<th>IP address<th>Hostname<th>User Agent</tr>"
+    while IFS=$'\t' read -r date ip host agent; do
+        if [[ "$ip" != "$lastip" ]]; then
+            lastip="$ip"
+            rowcolor "$ip"
+        fi
+        qhost=$(htmlencode "$host")
+        qagent=$(htmlencode "$agent")
+        echo -n "<tr class=log-line style='background-color:$color'><td class=date>$date<td class=ip>$ip<td class=host>$qhost<td class=useragent>$qagent</tr>"
+done < <(tac "$log")
+    echo "<tr><td colspan=4>&nbsp;"
+}
+
+gui-admin(){
+    local tabs="$1" i gid gpass gurl gnote nguests=0 admin
+    $isadmin || redirect "$url?info=error:+not+admin"
+    header '' "$tabs"
+    info
+    # Section: list guest accounts
+    echo "<div class=container>Guest accounts:<ul>"
+    for i in *'~'*; do
+        [[ $i =~ ^([[:alnum:]]+)[~]([-_.[:alnum:]]+)$ ]] || continue
+        gid="${BASH_REMATCH[2]}"
+        gpass="${BASH_REMATCH[1]}"
+        gurl="https://$SERVER_NAME${SCRIPT_NAME%/*}/$gpass~$gid"
+        meta-read-raw "$data/~$gid/meta"
+        gnote="${metas[note]}"
+        [[ -n "${metas[admin]}" ]] && admin=' [admin]' || admin=
+        echo "<li><a href='?mode=editguest&gid=$gid' title='Edit info of $gid'><img src='data:image/png;base64,$editicon' class=logo></a> <b>${gid}$admin</b>${gnote:+ (}$gnote${gnote:+)}: $sp$sp$sp <a href='$gurl' title='\"log in\" as $gid'><tt>$gurl</tt></a>"
+        ((nguests++))
+    done
+    ((nguests == 0)) && echo "<i>...none...</i>"
+    echo "</ul></div>"
+    # Section: create a new guest
+    echo "<div container>
+          <form method=POST enctype='multipart/form-data' class=container>
+          Create a new guest account:<p>
+          <table>
+          <tr><td>Name:<td><input type=text name=newguest size=12 value=''>
+          <td><i>short id: letters, numbers, hyphen, dot, underscore</i>
+          <tr><td>Note:<td colspan=2><input type=text name=note size=64 value=''>$sp$sp$sp<i>Description</i>
+          <tr><td><label for=isadmin style='cursor: pointer;'>Is Admin:</label>
+          <td><input type=checkbox id=isadmin name=isadmin value=yes>
+          <td><i>Non-admins have no way to access the admin account. Admin guests have a tab to become the admin</i>
+          <tr><td colspan=3><input class='btn' type='submit' value='Create a new guest account'>
+          </table></form></div>"
+    footer
+}
+
+create-guest(){
+    local gid="${1//[^-_.[:alnum:]]/}" note="$2" gadmin="$3" gpass
+    $isadmin || redirect "$url?info=error:+not+admin" # we must be the admin
+    set-metas note="$note"
+    [[ -n "$gadmin" ]] && metas[admin]=yes || metas[admin]=
+    [[ -z "$gid" ]] && redirect "?mode=admin&info=error:+invalid+guest+name"
+    # shellcheck disable=SC2010,SC2012,SC2035   # Allow ls instead of find
+    gpass=$(ls -1 *"~$gid" | grep -v '[*]' | grep -oPm1 -- '~\K[[:alnum:]]+')
+    [[ -n "$gpass" ]] && redirect "?mode=admin&info=error:+existing+guest+name"
+    gpass=$(random_string "$passlen" )
+    ln -sf "$adminpass" "$gpass~$gid"
+    mkdir -p "$data/~$gid"
+    meta-write-raw "$data/~$gid"/meta
+    redirect "?mode=admin&info=guest+${gid}+created"
+}
+
+################################# Edit Guest GUI
+
+gui-guest(){
+    local tabs="$1" i gid="$2"
+    $isadmin || redirect "$url?info=error:+not+admin"
+    local meta="$data/~$gid/meta" isadmin
+    [[ -e "$meta" ]] || redirect "?mode=admin&info=error:+edit+unknown+guest+id:+$gid"
+    header '' "$tabs"
+    info
+    meta-read-raw "$meta"
+    [[ -n "${metas[admin]}" ]] && isadmin=checked
+    # Section: Edit guest
+    echo "<form method=POST enctype='multipart/form-data' class=container>
+          Edit guest account $gid:<p>
+          <input type=hidden name=savegid value='$gid'>
+          <table>
+          <tr><td>Note:<td colspan=2><input type=text name=note size=64 value='${metas[note]}'>
+          <tr><td><label for=isadmin style='cursor: pointer;'>Is Admin:</label>
+          <td><input type=checkbox id=isadmin name=isadmin value=yes $isadmin>
+          <td><i>(has a tab to go to the admin account)</i>
+          <tr><td colspan=3><input class='btn' type='submit' value='Save'>
+          </table></form>"
+    echo "<form method=POST enctype='multipart/form-data' class=container>
+          Or delete guest account $gid:<p>
+          <input type=hidden name=delgid value='$gid'>
+          <input class='btn' type='submit' value='Delete'>
+          </table></form>"
+    footer
+}
+
+########### Edit guest
+
+save-guest(){
+    local gid="${1//[^-_.[:alnum:]]/}" name="$2" note="$3" admin="$4"
+    local meta="$data/~$gid/meta"
+    [[ -e "$meta" ]] || redirect "?mode=admin&info=error:+try+to+save+unknown+guest+id:+$gid"
+    meta-read-raw "$meta"
+    metas[note]="$note"
+    metas[admin]="$admin"
+    meta-write-raw "$meta"
+    redirect "?mode=admin&info=guest+${gid}+saved"
+}
+
+########### Delete guest
+
+del-guest(){
+    local gid="${1//[^-_.[:alnum:]]/}" name="$2" note="$3" admin="$4"
+    local meta="$data/~$gid/meta" trash="$data/trash"
+    [[ -e "$meta" ]] || redirect "?mode=admin&info=error:+try+to+delete+unknown+guest+id:+$gid"
+    mkdir -p "$trash"/{cgi,data}
+    rm -rf "$trash/cgi/"[a-zA-Z0-9]*"~$gid" "$trash/data/~$gid"
+    mv [a-zA-Z0-9]*"~$gid" "$trash/cgi"
+    mv "$data/~$gid" "$trash/data"
+    redirect "?mode=admin&info=guest+${gid}_deleted"
+}
+
+################################# Misc utils
+
+check-complete(){
+    local file="$1" size="$2" expected
+    [[ -z "$HTTP_CONTENT_LENGTH" ]] && return 0
+    # heuristics: file size + 27% encoding + 3000 bytes of headers
+    ((expected = 3000 + (size * 127) / 100))
+    if (("$HTTP_CONTENT_LENGTH" < expected)); then
+        return 1
+    else
+        return 0
+    fi
 }
 
 human_size() {
@@ -334,82 +446,6 @@ human_size() {
 }
 
 ################################# Logs mode
-
-apachelogsdir=/var/log/apache2
-apachelogsname=files_access.log
-export dateformat='%Y-%m-%d.%Hh%M,%S' # format to display dates
-
-main-logs() {
-    local file qfile logs empty now=$(date +%s) expires
-    header logs
-    echo "<table class=fwxlog>"
-    # thus our own IP is in the dim 1rst color, to better spot others
-    rowcolor "$REMOTE_ADDR"
-    # shellcheck disable=SC2010
-    while read -r file; do
-        set_regexp_quote qfile "GET $fwxid/$file "
-        logfiles=$(sudo find "$apachelogsdir" -name "$apachelogsname*")
-        # shellcheck disable=SC2086
-        logs=$(parselogs < <(sudo /usr/bin/zgrep -h "$qfile" $logfiles |sort -r))
-        [[ -z "$logs" ]] && empty=true || empty=false
-        expires=$(get-expiration "$file" "$now")
-        printlogs "$file" "$empty" "$expires" <<<"$logs"
-    done < <(cd "$data" || exit 1; ls -t1 | grep -v '^[~]')
-    echo "</table>"
-    footer
-}
-
-printlogs(){
-    local file="$1" empty="$2" expires="$3" qfile date ip agent color last
-    if "$empty"; then
-        echo "<tr class=file><th class=file colspan=3>$file <span class=status>no downloads yet</span></th><th class=expire>Expires in $expires days</tr><tr><td colspan=4>&nbsp;</td></tr>"
-        return
-    fi
-    echo "<tr class=file><th class=file colspan=3>$file</th><th class=expire>Expires in $expires days</tr>"
-    echo "<tr class=legend><th>Date+Time<th>IP address<th>Hostname<th>User Agent</tr>"
-    while read -r date ip agent; do
-        if [[ "$date$ip" == __ ]]; then # parsing failed, prints the raw line
-            echo "<tr class='log-line unparsed'><td colspan=3>$agent</tr>"
-            continue
-        fi
-        if [[ "$ip" != "$last" ]]; then
-            last="$ip"
-            rowcolor "$ip"
-        fi
-        getiphostname "$ip"           # sets the global var iphostname
-        echo "<tr class=log-line style='background-color:$color'><td class=date>$date<td class=ip>$ip<td class=host>$iphostname<td class=useragent>$agent</tr>"
-    done
-    echo "<tr><td colspan=4>&nbsp;</td></tr>"
-}
-
-# parselogs must parse your apache logs and emit lines "$date $ip $agent"
-# our format:
-# 12.3.46.165 - - [2026-02-27T14:53:27+0000] "GET /infoP/1.1" 403 1977 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0"
-# Standard:
-# 216.73.163.182 - - [01/Mar/2026:07:36:03 +0000] "GET /info HTTP/1.1" 404 787 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0"
-
-parselogs(){
-    local line date agent ip adate
-    while read -r line; do
-        #               IP                  ISO_DATE                    AGENT
-        if [[ $line =~ ^([^[:space:]]+).*\ \[([-+:[:digit:]]{10}T[-+:[:digit:]]+)\]\ .*\ \"([^\"]+)\"$ ]]; then
-            # our nicer log with ISO dates
-            date=$(date -d "${BASH_REMATCH[2]}" +"$dateformat")
-            agent="${BASH_REMATCH[3]}"
-            ip="${BASH_REMATCH[1]}"
-            echo "$date $ip $agent"
-        elif [[ $line =~ ^([^[:space:]]+)[^[]*\ \[([-+:/ [:alnum:]]+)\]\ .*\ \"([^\"]+)\"$ ]]; then
-            # default apache format
-            # replace all / and first : in apache date to get a valid one
-            adate="${BASH_REMATCH[2]//\// }"
-            date=$(date -d "${adate/:/ }" +"$dateformat")
-            agent="${BASH_REMATCH[3]}"
-            ip="${BASH_REMATCH[1]}"
-        else
-            echo _ _ "$line"
-        fi
-    done
-}
 
 
 # sets the color global var to the color of the row
@@ -455,7 +491,6 @@ rowscol[17]='hsl( 52.5, 60%, 95%)'
 rowscol[18]='hsl(275.0, 60%, 95%)'
 rowscol[19]='hsl(137.5, 60%, 95%)'
 rowscol[20]='hsl(  0, 60%, 95%)'
-rowscolxtra='#eee'
 rowkey=0
 rowscolmax=20
 
@@ -475,61 +510,61 @@ getiphostname(){
     fi
 }
 
-################################# Admin mode
-
-main-admin() {
-    local nguests=0 id
-    $isadmin || { echo "Location:?mode=upload$nl$nl"; exit 0;}
-    header admin
-    echo "<div class=container>Guest accounts:<uL>"
-    for i in "$data/~"*; do
-        [[ "${i: -1}" == '*' ]] && continue # no match
-        id="${i##*/}"
-        sid=$(find . -name "*$id")
-        [[ $sid =~ /[[:alnum:]]+[~][-_.[:alnum:]]+$ ]] || continue
-        echo "<li><b>${id:1}</b>: <a href='https://$SERVER_NAME${SCRIPT_NAME%/*}/${sid##*/}'><tt>https://$SERVER_NAME${SCRIPT_NAME%/*}/${sid##*/}</tt></a>"
-        ((nguests++))
-    done
-    ((nguests == 0)) && echo "<i>...none...</i>"
-    echo "</ul></div>"
-    echo "<form id='create-guest' method='POST' enctype='multipart/form-data' class=container>
-       <input type=text size=12 name=newguest>
-       <input class='btn' type='submit' value='Create new guest'>
-       <i>(short id: letters, numbers, hyphen, dot, underscore)</i>
-    </form>"   
-    footer
-}
-
-create-guest(){
-    local id="$1" pass=$(random_string 12)
-    [[ -n "$id" ]] || return
-    ln -sf "${SCRIPT_NAME##*/}" "${pass}~${id}"
-    mkdir -p "$data/~$id"
-}
-
 ################################# Clean mode
 
-main-clean() {
-    local nguests=0 id d path file now=$(date +%s) fdate
-    $isadmin || { echo "Location:?mode=upload$nl$nl"; exit 0;}
+clean() {
+    local now=$(date +%s) meta pass trash
     echo "Content-Type:text/plain$nl"
-    for d in "$data/~"*; do
-        [[ "${d: -1}" == '*' ]] && continue # no match
-        while read -r path; do
-            file="${path##*/}"
-            if [[ "${file:0:1}" == '.' ]]; then
-                if [[ -e "$d/${file:1}" ]]; then
-                    (( $(date -r "$path" +%s) < now )) && rm -f "$path" "$d/${file:1}" # obsolete file
-                else
-                    rm -rf "$path" # orphan dotfile
-                fi
-            elif ! [[ -e "$d/.${file}" ]]; then # no exp date, set one
-                fdate=$(date -r "$path" --iso)
-                touch -d "@$(date -d "$fdate +$validity days" +%s)" "$d/.${file}"
-            fi
-        done < <(find "$d" -type f)
+    $isadmin || { echo "clean: must be admin, aborted!"; exit 0;}
+    for meta in "$data/."* "$data/~"*/*.meta; do
+        [[ -e "$meta" ]] || continue # no match
+        pass="${meta##*/}"; pass="${pass%.*}"
+        meta-read-raw "$meta"
+        if (( ($(date -d "${metas[expire]}" +%s) - now) < 0 )); then # expired
+            trash="${meta%/*}"/trash
+            mkdir -p "$trash"
+            mv "${meta%.meta}"[.,]*  "$trash"
+        fi
     done
+    find "$data" -type d -name trash -exec rm -rf {} \;
 }
+
+############ Metadata functions
+# from: https://github.com/ColasNahaboo/colas-bash-lib
+# metadata are stored in memory as associative arrays key,values
+declare -Ag metas
+
+# raw meta files: super efficient, but not very human friendly
+# we use the native marsdhalling of data built-in into bash: declare -p
+# reads metadata from "raw" file $1, info array named $2" (defaults to "metas")
+# the metadata file is a declaration of a global associative array named metas
+# resets the metas variable if file does not exists
+meta-read-raw(){
+    local file="$1" metaname="$2"
+    meta-reset "$metaname"
+    [[ -s "$file" ]] || return
+    if [[ -n "$metaname" ]] && [[ "$metaname" != metas ]]; then
+        # rename the declare in a temporary file and then source it
+        local tmp="/tmp/meta-raw.$$"
+        sed "1s/^declare -Ag metas=/declare -Ag $metaname=/" "$file" > "$tmp"
+        source "$tmp"
+        rm "$tmp"
+    else                        # default name is faster
+        source "$file"
+    fi
+}
+
+# $1=file $2=metadata array name, default  "metas"
+# We need to force the declaration to have global scope (with "g" option
+# Otherwise sourcing the file inside a function will not work
+meta-write-raw(){
+    local file="$1" name="${2:-metas}"
+    declare -p "$name" |
+        sed "1s/^declare -A $name=/declare -Ag metas=/" >"$file"
+}
+
+# to clear the metadata
+meta-reset(){ local _m="${2:-metas}"; unset "$_m"; declare -Ag "$_m";}
 
 ################################# Misc utils
 
@@ -547,32 +582,217 @@ random_string() { # LC_ALL=C avoids unicode multibyte mess
     LC_ALL=C tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c "${1:-12}"
 }
 
-# set expiration date as a dotfile
-set-expiration(){
-    local days="$1" dotfile="$2/.$3"
-    # Double quotes nested inside a $() subshell dont conflict with the outer "
-    touch -d "@$(date -d "+$days days" +%s)" "$dotfile"
+htmlencode() {
+    local str="${1//&/&amp;}"; str="${str//</&lt;}"; str="${str//>/&gt;}"
+    str="${str//\"/&quot;}"; str="${str//\'/&#39;}"; echo "$str"
 }
 
-# get expiration date from the dotfile. set it if not there
-get-expiration(){
-    local file="$1" now="$2" fdate dotfile
-    dotfile="$data/.$file"
-    if ! [[ -e "$dotfile" ]]; then
-        fdate=$(date -r "$data/$file" --iso)
-        touch -d "@$(date -d "$fdate +$validity days" +%s)" "$dotfile"
-    fi
-    echo $(( ( $(date -r "$dotfile" +%s) - now) / 86400))
+###################### CSS Style
+style='
+/*============================================== Common & Vars */
+:root {
+    --bg: #fcfcfc; --sidebar-bg: #f0f2f5; --text: #24292f;
+    --dim: #6e7781; --ip: #0969da; --path: #bc4c00;
+    --border: #d0d7de; --highlight: #fff8c5;
 }
-################################# Modes dispatcher
+body {
+    background: var(--bg); color: var(--text);
+    font-family: Proxima Nova, system-ui, -apple-system, sans-serif;
+    margin: 0; font-size: 14px;
+}
+.container { margin: 0 auto; padding: 20px; }
+.minicontainer { padding: 10px 20px; }
+pre, code, .log-line, .mptcode {
+    font-family: "SFMono-Regular", Consolas, monospace; font-size: 13px;
+}
+/* Headings: Grouped by shared traits */
+h1, h2, h3, h4, h5, h6 { font-weight: normal; margin: 10px 0 5px; }
+h1 { font-size: 170%; } h2 { font-size: 145%; } h3 { font-size: 130%; }
+h4, h5, h6 { font-weight: bold; }
+h4 { font-size: 120%; } h5 { font-size: 110%; } h6 { font-size: 95%; }
+/* Sticky Header */
+.header {
+    position: sticky; top: 0; z-index: 1000;
+    background: rgba(252, 252, 252, 0.9); backdrop-filter: blur(5px);
+    border-bottom: 1px solid var(--border); padding: 15px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+/* Buttons */
+.btn, .btn2 {
+    padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border);
+    background: #fff; color: var(--ip); text-decoration: none; font-weight: 500;
+}
+.btn:hover { background: #f6f8fa; }
+.btn2 { background: #afa; } .btn2:hover { background: #8f8; }
+/* Info Blocks */
+div.info { padding: 16px; border-left: 4px solid; }
+div.ok,div.success { background: #f0fff0; border-left-color: green; }
+div.error { background: #fff0f0; border-left-color: red; }
+div.warning { background: #fffbeb; border-left-color: #d97706; }
+/*============================================== Navigation */
+.main-header {
+    display: flex; align-items: baseline; padding: 10px 20px;
+    background: #f8f9fa; border-bottom: 1px solid #ddd;
+}
+.brand { font-weight: bold; font-size: 1.2em; }
+.brand a { text-decoration: none; color: inherit; }
+img.logo {vertical-align:bottom;}
+/* Merged the two .nav-tabs blocks into one */
+.nav-tabs a {
+    margin-left: 20px; padding: 5px 10px; text-decoration: none;
+    color: var(--ip); background: #eee; border: 1px solid #ccc;
+    border-bottom: none; border-radius: 5px 5px 0 0;
+}
+.nav-tabs a.active {
+    pointer-events: none; cursor: default; color: #333;
+    border-bottom: 2px solid var(--ip); font-weight: bold;
+}
+/* Tables & Logs */
+table { width: 100%; border-collapse: collapse; background: #fff; }
+th, td { text-align: left; padding: 8px 12px; border: 1px solid #e1e4e8; }
+.log-line {
+    padding: 4px 12px; border-left: 3px solid #aaa;
+    border-bottom: 1px solid #f0f0f0; white-space: pre-wrap;
+}
+.log-line:nth-child(even) { background: #f0f0ff; }
+.log-line:nth-child(odd)  { background: #fafaff; }
+.log-line:hover { background: var(--highlight); border-left-color: var(--ip); }
 
+/* Filewebx-specific */
+input,textarea {padding: 0.2rem 0.2rem}
+span.status {font-size:1.2rem; color: var(--dim); font-size:small}
+code.fwxcode { font-size: large; background: #ffffdd; }
+tr.unparsed { background: var(--bg); }
+table.mono tr th a {text-decoration: none; color: inherit;}
+.fwxlog td { padding: 0.1rem 0.4rem; }
+.fwxlog th { background: #fafaff; padding: 4px; }
+.fwxlog .file, .fwxlog .expire { background: #f0f0ff; }
+.fwxlog .file, .fwxlog .legend { border-left: 3px solid #aaa; }
+.fwxlog .file, .fwxlog .date { font-weight: bold; }
+.fwxlog .legend th, .fwxlog .expire { font-size: 80%; }
+.fwxlog .host, .fwxlog .useragent { font-size: 80%; }
+.fwxlog .file { text-align: left; }
+.fwxlog .legend th { font-weight: 500; color: #aaa; }
+.fwxlog .expire { font-weight: 400; color: #555; }
+.fwxlog .useragent { color: #888; font-size: 75%;}
+.fwxlog .new { background: yellow; }
+'
+
+# from a 32x32 png image with tranparent bg, via: base64 -w 0 imagefile.png
+logo='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'
+
+editicon='iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+oDBxMhHVCFtD4AAAG8SURBVDjLpdS7axRBHAfwz+wFCy3TCD5u8bBQBFGxFnwgMYKNEtMoiDEWiqW2IopgqQgSX2gkphFRixTiqzZWooWc7BkEi/wDGm7HZg7XkOQuZGCaHeYz3/nNzAYrbI16fgCPEXAyrBAbwLPUV2P3f2C+Lg+CRReJUWz9LGLCDuI5SmzDDezoS4MncBXru4T6iq0VbAI78SXBA6FRz4dxG2fxGr+XAP9gD15gPLbjaKiFcRzBoWareN+Hi7jQbBWTPdRs/zzsQRWDDNtT5G7YPrzEeFnqYEerWAfs5TT3JuxJjHE0y9xP2GAV6wlM2CtMtMv2mRDCPRzDYFmWHxr1/OOmDRtDT+A8bKSW1e5iKCV7F2OsYVcIMesKVrGybaSW1cZwvIMtNi/rgj0tYxzJasYwjMPNVvF2qV1lC2D96WpMivF0FkIVe9Ot5gslPIc5XLJMDPrmpVuD85jF5/Tge8YWSngK/ViLR8iXg3USxtThGy7jVrNVzHZNk2Wr0l+orILT6flNN1vFFKZ6TRNC2I9f32dmYhW8joeNej6HT5W03doW3Ew7+rdIOowhXMHmZZTrB641W8Wd6se/E8WtW4e9Pz0AAAAASUVORK5CYII='
+
+############ PP print-debugging
+# Crude debugging: prints args to logfile "$PPLOG", (empty = stdout)
+# If an arg is -t, switch to trace mode: the following arguments will be
+# taken as variable names whose values will be printed
+# -v (defaut) reset prints mode to normal.
+# PPT is a shortcut to PP -t.
+# E.g: PP after scan: -t foo bar  ==> after scan: foo=a bar='a and b'
+
+# Uncomment the line below to redirect PP functions to a file
+# export PPLOG=/tmp/PPLOG
+
+# The user-level functions: PPT & PP
+PPT(){ PP -t "$@";}
+PP(){
+    local _arg _mode _info _sep
+    local -
+    for _arg in "$@"; do
+        case "$_arg" in
+            '-t') _mode=t; continue;;
+            '-v') _mode=v; continue;;
+        esac
+        PPV "$_sep"
+        if [[ "$_mode" == t ]]; then
+            local __desc=$(declare -p "$_arg" 2>/dev/null)
+            if [[ -z "$__desc" ]]; then
+                PPV "$_arg!"
+            else
+                local __attr=$(echo "$__desc" | cut -d' ' -f2 | sed 's/-//')
+                # If no flag was found, it's a scalar
+                case "$__attr" in
+                    A) PPV "$_arg=("; PPAA "$_arg"; PPV ')';;
+                    a) PPV "$_arg=("; PPIA "$_arg"; PPV ')';;
+                    *) PPV "$_arg="; PPV "$(printf %q "${!_arg}")";;
+                esac
+            fi
+        else
+            PPQ "$_arg"
+        fi
+        _sep=' '
+    done
+    PPN ''
+}
+
+# PPV is the low-level I/O, that can be redefined to output on other devices
+PPV(){ [[ -n "$PPLOG" ]] && echo -n "${1}" >>"$PPLOG" || echo -n "${1}" >&2;}
+
+# handle Associative Arrays
+PPAA() {
+    local -n _array=$1  # Creates a reference to the array name passed
+    local _key
+    for _key in "${!_array[@]}"; do
+        PPV "[$_key]="; PPQ "${_array[$_key]}"; PPV ' '
+    done
+}
+# handle Indexed Arrays
+PPIA() {
+    local -n _array=$1  # Creates a reference to the array name passed
+    local val
+    for val in "${!_array[@]}"; do
+        PPQ "${_array[val]}"; PPV ' '
+    done
+}
+# convenience: PPV with terminating newline
+PPN(){ PPV "$1"$'\n';}
+# convenience: PPV quoting its argument
+PPQ(){ PPV "$(printf %q "$1")";}
+
+################################# Check requirements
+rawerr(){ echo $'Content-Type: text/plain\n\nError: '"$*"; exit 1;}
+# Check Bash version
+if ((BASH_VERSINFO[0] < 4)) || [[ ${BASH_VERSINFO[0]} -eq 4 && ${BASH_VERSINFO[1]} -lt 2 ]]; then rawerr "Bash 4.2+ required, but we are on $BASH_VERSION"
+fi
+# Fallback for 'tac' (using sed)
+command -v tac >/dev/null 2>&1 || tac() { sed '1!G;h;$!d' "$@"; }
+# Missing commands
+miss=
+for i in realpath urlencode; do
+    command -v "$i" >/dev/null 2>&1 || miss="$miss\"$i\" not found!"$'\n'
+done
+[[ -n "$miss" ]] && rawerr "$miss"
+
+################################# Main logic dispatcher
+. cgibashopts
+init
+[[ -e "$configfile" ]] && . "$configfile"
+
+# backoffice operations called from GUI pages
 # shellcheck disable=SC2154
 if [[ -n "$FORM_newguest" ]] && $isadmin; then
-    create-guest "${FORM_newguest//[^-_.a-zA-Z0-9]/}"
-    echo "Location:?mode=admin$nl$nl"
-    exit 0
-elif [[ "$FORM_mode" == logs ]]; then main-logs
-elif [[ "$FORM_mode" == admin ]]; then main-admin
-elif [[ "$FORM_mode" == clean ]]; then main-clean
-else main                       # mode == upload
+    create-guest "$FORM_newguest" "$FORM_note" "$FORM_note"
+elif [[ -n "$FORM_savefile" ]]; then
+    save-file "$FORM_savefile" "$FORM_note" "$FORM_expire"
+elif [[ -n "$FORM_delfile" ]]; then
+    del-file "$FORM_delfile" 
+elif [[ -n "$FORM_savegid" ]] && $isadmin; then
+    save-guest "$FORM_savegid" "$FORM_name" "$FORM_note" "$FORM_isadmin"
+elif [[ -n "$FORM_delgid" ]] && $isadmin; then
+    del-guest "$FORM_delgid"
+elif [[ "$FORM_mode" == clean ]]; then
+    clean
+    
+# frontoffice GUI pages, each in a tab of the nav bar
+elif [[ "$FORM_mode" == admin ]]; then
+    gui-admin upload,logs,admin!
+elif [[ "$FORM_mode" == logs ]]; then
+    gui-logs upload,logs!,admin
+elif [[ "$FORM_mode" == log ]]; then
+    gui-log upload,log!,logs,admin "${FORM_pass}"
+elif [[ "$FORM_mode" == editguest ]]; then
+    gui-guest upload,logs,admin,guest! "$FORM_gid"
+else
+    gui-upload upload!,logs,admin
 fi
