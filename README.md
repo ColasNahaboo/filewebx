@@ -32,17 +32,20 @@ mkdir -p /www/filewebx/{data,cgi};  chown -R www-data:www-data /www/filewebx
    Note: for convenience, it is advised to make your account on the server a member of the `www-data` group.
 
 2. Choose an "admin password", which weill be the URL of the main aadmin dahsboard. You can run the provided `./doc/random-string.sh N` to generate one. For example in this doc, `yJDdYNEXmB`. The longer, the safer.
+
 3. configure it. See for instance how to do it for apache, at the url https://my.filewex.org and a directory `/www/filewebx` and the admin password `yJDdYNEXmB` in the file [doc/apache-sample.conf](apache-sample.conf).
 Install the SSL certificates if needed. I personally use a wildcard sertificate from [let's encrypt](https://letsencrypt.org/) that I set in the main apache config, so I do not need to mention it in my virtual hosts.
 For other servers (nginx, litespeed, caddy, ...) just ask your favorite AI to convert `doc/apache-sample.conf` into a configuration specific to your setup.
 
 4. copy into your `cgi` dir (e.g: `/www/filewebx/cgi`) the files:
-  - `filewebx` as your chosen admin password (e.g: `yJDdYNEXmB`)
+  - `filewebx` as your chosen admin password (e.g: `yJDdYNEXmB`)\
     `rsync filewebx root@my.filewebx.org:/www/filewebx/cgi/yJDdYNEXmB`
-  - `filewebdl` as `_`:
+  - `filewebdl` as `_`:\
     `rsync filewebdl root@my.filewebx.org:/www/filewebx/cgi/_`
-  - `cgibashopts` from  [cgibashopt GitHub repository](https://github.com/ColasNahaboo/cgibashopts)
-    `wget https://raw.githubusercontent.com/ColasNahaboo/cgibashopts/refs/heads/main/cgibashopts; rsync cgibashopts root@my.filewebx.org:/www/filewebx/cgi; rm cgibashopts`
+  - `cgibashopts` from  [cgibashopt GitHub repository](https://github.com/ColasNahaboo/cgibashopts)\
+    `wget https://raw.githubusercontent.com/ColasNahaboo/cgibashopts/refs/heads/main/cgibashopts`\
+    `rsync cgibashopts root@my.filewebx.org:/www/filewebx/cgi`\
+    `rm cgibashopts`
 
 5. install a crontab entry to clean daily the obsolete files after their expiraton date, byt accessing your admin URL with the parameter `mode=clean`, e.g:
    
@@ -50,7 +53,7 @@ For other servers (nginx, litespeed, caddy, ...) just ask your favorite AI to co
 12 03 * * * curl -s 'https://my.filewex.org/yJDdYNEXmB?mode=clean'
 ```
 
-6. Optionally, you can provide a `filewebx.conf` configuration file above the root directory (e.g: `/www/filewebx/filewebx.conf`) to set some paramter in the bash syntax:
+6. Optionally, you can provide a `filewebx.conf` configuration file above the root directory (e.g: `/www/filewebx/filewebx.conf`) to set some parameter in the bash syntax:
 
 ```
 validity=100  # default expiration date, in days
@@ -84,7 +87,10 @@ If you are using it from an IP address defined in your web server config (in the
 
 - The Logs tab enable to see all download logs of all files under the current account
 
-- The Admin tab, present only for the admin account, allows to create guests accounts and lists all the active ones. A guest account will only see its own uploaded files. A guest account will have a URL of the form  `https://my.filewebx.org/guestpassword~guestid`, with links to download its files in the  form `https://my.filewebx.org/_/~guestid/filepassword/my-sent-file.foo`
+- The Admin tab, present only for the admin account, allows to create guests accounts and lists all the active ones. A guest account will only see its own uploaded files. A guest account will have a URL of the form\
+`https://my.filewebx.org/guestpassword~guestid`\
+with links to download its files in the  form\
+`https://my.filewebx.org/_/~guestid/filepassword/my-sent-file.foo`\
 For convenience, try to keep the guest ids as short as possible. Only alphanumeric and dot, hyphen and underscore characters are accepted.
 
 Guest accounts marked as admin have a link to get back to the main admin account. If you give to a friend the URL of a non-admin guest account, he will be able to upload files and get sharable download links to them, but will not be able to access the main admin account not create other guests.
@@ -112,19 +118,19 @@ Guest accounts marked as admin have a link to get back to the main admin account
         ├── trash           # "deleted" files and accounts of Anna
         ├── aqVnQ.log       # access logs for file of token aqVnQ of Anna
         ├── aqVnQ.meta      # metadata for file of token aqVnQ of Anna
-        └── aqVnQ.bar.jpg   # the file itself, of real name bar.jpg
+        └── aqVnQ,bar.jpg   # the file itself, of real name bar.jpg
 
 ```
 
 Metadata — bash Associative Arrays — are stored in "bash native" format via `declare -p` via the embedded functions of `metadata.sh` of my collection of bash snippets [colas-bash-lib](https://github.com/ColasNahaboo/colas-bash-lib)
 
-Logs are lines of 4 tab-separated values: date, ip-adress, adress-name, user-agent.
+Logs are lines of 4 tab-separated values: date, ip-address, address-name, user-agent.
 
-**changing the main password** in case it is compromised, just log on your server to rename the main filewebx script. E.g.:
+**changing the main password** in case it is compromised, just log on your server to rename the main filewebx script. E.g.:\
   `mv /www/filewebx/cgi/yJDdYNEXmB /www/filewebx/cgi/hthie9Oweeob`
 Do not forget also to change it in your apache configuration, if present.
 
-**changing the password of a guest account** in case it is compromised, just log on your server to change the "password" part (before the tilde) of the cgi script link. E.g.:
+**changing the password of a guest account** in case it is compromised, just log on your server to change the "password" part (before the tilde) of the cgi script link. E.g.:\
   `mv /www/filewebx/cgi/ieda6Waiwan9ath~Bob /www/filewebx/cgi/fohthie9Owee~Bob`
 
 ## License
