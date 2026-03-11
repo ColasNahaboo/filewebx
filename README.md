@@ -9,8 +9,8 @@ It is your own simpler WeTransfer / MASV / Smash / SwissTransfer / JumpShare / p
 - It does not require logins and passwords for convenience and simplicity, but still provides significant security by using [Capability URLs](https://www.w3.org/TR/capability-urls/) , i.e. the urls used are not discoverable nor guessable, even by people you send links to. E.g:
   * Admin URL: `https://my.filewebx.org/adminpassword`
   * Guest URL: `https://my.filewebx.org/guestpassword~guestid`
-  * Download URL: `https://my.filewebx.org/_/filepassword.filename`
-    Or short version: `https://my.filewebx.org/_/filepassword`
+  * Download URL: `https://my.filewebx.org/_/filepassword.filename` \
+    Or short version: `https://my.filewebx.org/_/filepassword` \
     Or customized: `https://my.filewebx.org/_/filepassword.anything`
 - Easy to deploy and upgrade: 3 bash scripts.
 - Data is kept as plain files, so easy to administrate
