@@ -112,10 +112,9 @@ gui-upload(){
                 metas[name]="$filename"
 	        metas[uname]="$(urlencode "$filename")"
 	        metas[hname]="$(htmlencode "$filename")"
-                metas[hsize]="$(human_size "$size")"
-                # we use dots in urls, safer than commas
                 metas[url]="${urld}/$pass/${metas[uname]}"
                 metas[surl]="${urld}/$pass/"
+                metas[hsize]="$(human_size "$size")"
                 meta-write-raw "$meta"
                 info "success!<p>
 	        File uploaded (${metas[hsize]}), can be downloaded as the shareable link:
@@ -216,6 +215,7 @@ gui-log(){
           <form method=POST enctype='multipart/form-data' class=minicontainer>
           <input type=hidden name=savefile value='$pass'>
           <table>
+          <tr><td>Filename:<td colspan=2><input type=text name=name size=64 value='${metas[hname]}'>
           <tr><td>Note:<td colspan=2><input type=text name=note size=64 value='${metas[note]}'>
           <tr><td>Expires:<td colspan=2><input type=text name=expire size=11 value='${metas[expire]}' pattern='^\d{4}-\d{2}-\d{2}|[0-9]*[1-9][0-9]*$' title='Enter a date (YYYY-MM-DD) or a number of days'>
           (in $days days) <span class=status>Enter a number of days or the expiration date as YYYY-MM-DD</span>
@@ -238,10 +238,14 @@ gui-log(){
 ########### META modification, then redirect to log page
 
 save-file(){
-    local pass="$1" note="$2" exp="$3" meta metas expire
+    local pass="$1" note="$2" exp="$3" filename="$4" meta metas expire
     meta="$data"/"$pass".meta
     [[ -e "$meta" ]] || redirect "?info=error:+edit+unknown+file+id:+$pass"
     meta-read-raw "$meta"
+    metas[name]="$filename"
+    metas[uname]="$(urlencode "$filename")"
+    metas[hname]="$(htmlencode "$filename")"
+    metas[url]="${urld}/$pass/${metas[uname]}"
     if [[ $exp =~ ^[[:space:]]*([[:digit:]]+)[[:space:]]*$ ]]; then
         metas[expire]=$(date -d +\ "${BASH_REMATCH[1]}"\ days --iso)
     elif [[ $exp =~ ^[[:space:]]*([[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2})[[:space:]]*$ ]]; then
@@ -776,7 +780,7 @@ init
 if [[ -n "$FORM_newguest" ]] && $isadmin; then
     create-guest "$FORM_newguest" "$FORM_note" "$FORM_note"
 elif [[ -n "$FORM_savefile" ]]; then
-    save-file "$FORM_savefile" "$FORM_note" "$FORM_expire"
+    save-file "$FORM_savefile" "$FORM_note" "$FORM_expire" "$FORM_name"
 elif [[ -n "$FORM_delfile" ]]; then
     del-file "$FORM_delfile" 
 elif [[ -n "$FORM_savegid" ]] && $isadmin; then
