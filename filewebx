@@ -117,7 +117,7 @@ gui-upload(){
                 metas[hsize]="$(human_size "$size")"
                 meta-write-raw "$meta"
                 info "success!<p>
-	        File uploaded (${metas[hsize]}), can be downloaded as the shareable link:
+	        File uploaded (${metas[hsize]}), can be downloaded as the shareable link URL:
                 <p><code class=url>${metas[url]}</code></p>
 	        Will be removed in $validity days, on ${metas[expire]}."
 	    else
@@ -210,13 +210,13 @@ gui-log(){
     # Section: Edit file metadata
     echo "<div class=minicontainer><b>${metas[hname]}</b>
           <span class=status>(uploaded on ${upped%%T*})</span><p>
-          <span class=status>Shareable link:</span><br>
+          <span class=status>Shareable link URL:</span><br>
           <code class=url>${metas[url]}</code></div>
           <form method=POST enctype='multipart/form-data' class=minicontainer>
           <input type=hidden name=savefile value='$pass'>
           <table>
-          <tr><td>Filename:<td colspan=2><input type=text name=name size=64 value='${metas[hname]}'>
-          <tr><td>Note:<td colspan=2><input type=text name=note size=64 value='${metas[note]}'>
+          <tr><td>Filename:<td colspan=2><input type=text name=name size=64 value='${metas[hname]}' title='This is the name under which the file will be saved when downloading it via the shareable link URL'>
+          <tr><td>Note:<td colspan=2><input type=text name=note size=64 value='${metas[note]}' title='A free comment, for your eyes only'>
           <tr><td>Expires:<td colspan=2><input type=text name=expire size=11 value='${metas[expire]}' pattern='^\d{4}-\d{2}-\d{2}|[0-9]*[1-9][0-9]*$' title='Enter a date (YYYY-MM-DD) or a number of days'>
           (in $days days) <span class=status>Enter a number of days or the expiration date as YYYY-MM-DD</span>
           <tr><td colspan=3><input class='btn' type='submit' value='Modify'>

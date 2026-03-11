@@ -67,15 +67,22 @@ To update, just re-clone the repository and copy the `filewebx` and `filewebdl` 
 You can then use the script by going to the URL to the admin account provided by the install script, in our example: `https://my.filewebx.org/yJDdYNEXmB`
 If you are using it from an IP address defined in your web server config (in the examples 88.181.8.140 or 32.166.24.45), you can just go to `https://my.filewebx.org`. It will redirect also to the admin account above.
 
-- The default tab, Upload files, Uploading a file `my-sent-file.foo` will provide you with a link to give to others, in the form  `https://my.filewebx.org/_/OLw6bZrh65lj/my-sent-file.foo`. Note that a random "password" (more precisely, a token) is generated, `OLw6bZrh65lj` which is the important part, the rest being a kind of label for easier handling by humans.
+- The default tab, Upload files:
 
 ![](doc/screenshot-1.png)
 
-- Past uploaded files are shown. Clicking on one shows you the download logs, and allow you to add a note and chnage the expiration date. Files are kept 100 days by default.
+- Uploading a file `my-sent-file.foo` will provide you with a link to give to others, in the form  `https://my.filewebx.org/_/OLw6bZrh65lj/my-sent-file.foo`. Note that a random "password" (more precisely, a token) is generated, `OLw6bZrh65lj` which is the important part, the rest being a kind of label for easier handling by humans.
+
+![](doc/screenshot-1-1.png)
+
+- Past uploaded files are shown. Clicking on one shows you the download logs, and allow you to:
+  - Rename the file. The shareable link URL will change, but the old ones will still work, only some tools other than normal browsers may save the file under the old name.
+  - Add a personal note (a free comment, not sent via the link)
+  - Change the expiration date. Files are kept 100 days by default. You can specify it either as a number of days from now, or the date in `YYYY-MM-DD` format.
 
 ![](doc/screenshot-2.png)
 
-- The Logs tab enable to see all dpoownload logs of all files under the current account
+- The Logs tab enable to see all download logs of all files under the current account
 
 - The Admin tab, present only for the admin account, allows to create guests accounts and lists all the active ones. A guest account will only see its own uploaded files. A guest account will have a URL of the form  `https://my.filewebx.org/guestpassword~guestid`, with links to download its files in the  form `https://my.filewebx.org/_/~guestid/filepassword/my-sent-file.foo`
 For convenience, try to keep the guest ids as short as possible. Only alphanumeric and dot, hyphen and underscore characters are accepted.
