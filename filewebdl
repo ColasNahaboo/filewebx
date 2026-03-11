@@ -1,0 +1,71 @@
+#!/bin/bash
+# shellcheck disable=SC1090
+# Mini file downloader and logger for filewebx
+# Should be named '_' in the same directory as the filewebx script
+# VERSION 2.0.0
+# source: 'https://github.com/ColasNahaboo/filewebx'
+################################# Filewebdl, filewebx downloader
+
+nl=$'\n';  tab=$'\t'           # some useful constants
+dateformat='%Y-%m-%d.%Hh%M,%S' # dates format in logs. ISO-ish but readable 
+redirect_only_dumb=            # if true, ony redirect for CLI tools
+configfile='../filewebx.conf'
+[[ -e "$configfile" ]] && . "$configfile"
+
+declare -Ag metas
+notfound(){                     # Return 404 Header
+    echo "Status: 404 Not Found${nl}Content-Type: text/plain$nl"
+    echo "404 File Not Found: $1"
+    exit 1
+}
+
+# url/_/pass.filename or url/_/~guestid/pass.filename
+# (with the .filename part ignored: can be omitted or made human-friendly)
+# we log, and then redirected to:
+# url/_/_/pass/filename or url/_/_/~guestid/pass/filename
+# so that dumb clients save to "filename" properly.
+if [[ $PATH_INFO =~ ^((/[~][[:alnum:]]+)?/([[:alnum:]]+)) ]]; then
+    meta=../data"${BASH_REMATCH[1]}".meta
+    gid="${BASH_REMATCH[2]}"
+    pass="${BASH_REMATCH[3]}"
+    [[ -e "$meta" ]] || notfound "$gid$pass"
+    . "$meta"                   # read metadatas into "metas"
+    filename="${metas[name]}"
+    file="${meta%.*},$filename"
+    [[ -e "$file" ]] || notfound "$filename"
+    # log only if the url was for a valid and active file:
+    log="${meta%.meta}".log
+    size=$(stat -c %s "$file")
+    date=$(date +"$dateformat")
+    clienthost=$(host "$REMOTE_ADDR" | grep -oP 'domain name pointer +\K.*' | head -n 1)
+    echo "$date${tab}$REMOTE_ADDR${tab}${clienthost%.}${tab}$HTTP_USER_AGENT" >>"$log"
+    # Detect "dumb" CLI clients that do not obey Content-Disposition: filename=
+    if [[ -n "$redirect_only_dumb" ]] &&
+           [[ "$HTTP_USER_AGENT" =~ ([Ww]get|curl|aria|fetch|HTTrack|libwww-perl) ]]; then
+        # Redirect to a URL that ends in the filename
+        echo "Status: 302 Found"
+        echo "Location: /_/_/$gid$pass/$(urlencode "$filename")$nl"
+    else
+        qname="${filename//\\/\\\\}"
+        qname="${qname//\"/\\\"}"
+        echo "Content-Type: application/octet-stream"
+        echo "Content-Disposition: attachment; filename=\"$qname\""
+        echo "Content-Length: $size$nl"
+        cat "$file"
+    fi
+    
+    # internal url with the true filename as last /-part in the url
+    # url/_/_/pass/filename or url/_/_/~guestid/pass/filename
+elif [[ $PATH_INFO =~ ^/_(/[~][[:alnum:]]+)?/([[:alnum:]]+)/(.*)$ ]]; then
+    file=../data"${BASH_REMATCH[1]}/${BASH_REMATCH[2]},${BASH_REMATCH[3]}"
+    size=$(stat -c %s "$file")
+    echo "Content-Type: application/octet-stream"
+    echo "Content-Disposition: attachment"
+    echo "Content-Length: $size$nl"
+    cat "$file"
+    exit 0
+else
+    notfound "${PATH_INFO##*/}"
+fi
+
+exit 0

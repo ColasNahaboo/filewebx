@@ -1,104 +1,133 @@
 # filewebx
 
-<img src="doc/filewebx-logo-240x200.png" align="right" width="240" height="200">
-A simple and efficient bash CGI web script to transfer and exchange files privately. It uploads the file on your server, and generates a link that you can send to other people to download the file with no need to create an account. 
+<img src="doc/filewebx-logo-240x200.png" align="right" width="240" height="200"> **filewebx** is a lightweight, self-hosted Bash CGI system for private file exchange. It uses **Capability URLs** to provide security without the friction of user accounts. You upload a file, and the system generates a non-guessable, secret link that you can share.
 
-
-<img src='doc/screenshot.png'>
+It is your own simpler WeTransfer / MASV / Smash / SwissTransfer / JumpShare / pCloud. It provides nice security against external threats, but minimal separation between admins and guests of the system.
 
 ## Features
 
-- It does not require logins and passwords for convenience and simplicity, but still provides significant security by using [Capability URLs](https://www.w3.org/TR/capability-urls/) , i.e. the urls used are not discoverable nor guessable.
-- Easy to deploy and upgrade: A single bash script.
+- It does not require logins and passwords for convenience and simplicity, but still provides significant security by using [Capability URLs](https://www.w3.org/TR/capability-urls/) , i.e. the urls used are not discoverable nor guessable, even by people you send links to. E.g:
+  * Admin URL: `https://my.filewebx.org/adminpassword`
+  * Guest URL: `https://my.filewebx.org/guestpassword~guestid`
+  * Download URL: `https://my.filewebx.org/_/filepassword.filename`
+    Or short version: `https://my.filewebx.org/_/filepassword`
+    Or customized: `https://my.filewebx.org/_/filepassword.anything`
+- Easy to deploy and upgrade: 3 bash scripts.
 - Data is kept as plain files, so easy to administrate
 - It is privately self-hosted: everything is on your own server, nothing is handled by a third party.
 - It detects interrupted uploads and cancel them
 - The main account can create guests accounts — by just giving them a link — that can use the system without being able to use or see the files of other accounts
-- files are removed after 100 days.
+- files are removed after some specifiable time, defaulting to 100 days.
 
 ## Requirements
 
-- It should work on any linux system with a web server and a CGI interface. Tested with Apache.
+It should work on any linux system with a web server and a CGI interface. Tested with Apache. It supposes it has its own virtual server setup, with all files reachable from the outside at top level be executable CGI scripts.
 
 ## Installation
 
 1. Create a web site. Suppose the files will reside at `/www/filewebx`, you will need to create the directory with 2 subdirectories in it (if www-data is the account which runs your server, it can be lshttps for openlitespeed):
+   
 ```
 mkdir -p /www/filewebx/{data,cgi};  chown -R www-data:www-data /www/filewebx
 ```
-Note: for convenience, it is advised to make your account on the server a member of the `www-data` group.
+   
+   Note: for convenience, it is advised to make your account on the server a member of the `www-data` group.
 
-2. configure it. See for instance how to do it for apache, at the url https://filewex.mysite.com and a directory `/www/filewebx` and the name `aiV6shujahla4ei` in the file [doc/apache-sample.conf](apache-sample.conf).
-It did not include the SSL certificates, install them as you are used to. I personally use a wildcard sertificate from [let's encrypt](https://letsencrypt.org/) that I set in the main apache config, so I do not need to mention it in my virtual hosts.
+2. Choose an "admin password", which weill be the URL of the main aadmin dahsboard. You can run the provided `./doc/random-string.sh N` to generate one. For example in this doc, `yJDdYNEXmB`. The longer, the safer.
+3. configure it. See for instance how to do it for apache, at the url https://my.filewex.org and a directory `/www/filewebx` and the admin password `yJDdYNEXmB` in the file [doc/apache-sample.conf](apache-sample.conf).
+   It did not include the SSL certificates, install them as you are used to. I personally use a wildcard sertificate from [let's encrypt](https://letsencrypt.org/) that I set in the main apache config, so I do not need to mention it in my virtual hosts.
+For other servers (nginx, litespeed, caddy, ...) just ask your favorite AI to convert `doc/apache-sample.conf` into a configuration specific to your setup.
 
-For other servers (nginx, litespeed, caddy, ...) just ask your favorite AI to convert `doc/apache-sample.conf` into a configuration specific to your setup. But note that the See logs functionality will not work as the function `main-logs` should be adapted to your logs. Contact me with a sample of your file downloaded logs if needed.
+4. copy into your `cgi` dir (e.g: `/www/filewebx/cgi`) the files:
+  - `filewebx` as your chosen admin password (e.g: `yJDdYNEXmB`)
+    `rsync filewebx root@my.filewebx.org:/www/filewebx/cgi/yJDdYNEXmB`
+  - `filewebdl` as `_`:
+    `rsync filewebdl root@my.filewebx.org:/www/filewebx/cgi/_`
+  - `cgibashopts` from  [cgibashopt GitHub repository](https://github.com/ColasNahaboo/cgibashopts)
+    `wget https://raw.githubusercontent.com/ColasNahaboo/cgibashopts/refs/heads/main/cgibashopts; rsync cgibashopts root@my.filewebx.org:/www/filewebx/cgi; rm cgibashopts`
 
-3. create your configuration file, e.g. `myconfig.conf` by following the examples in [doc/filewebx-sample.conf](doc/filewebx-sample.conf).
-
-4. copy the file `cgibashopts` from  [cgibashopt GitHub repository](https://github.com/ColasNahaboo/cgibashopts) into the `/www/filewebx/cgi/` directory on your server. It does not need to have the executable bit on.
-
-5. install a crontab entry to clean daily the obsolete files after their expiraton date, e.g:
+5. install a crontab entry to clean daily the obsolete files after their expiraton date, byt accessing your admin URL with the parameter `mode=clean`, e.g:
+   
 ```
-12 03 * * * curl -s '`https://filewex.mysite.com/cgi/aiV6shujahla4ei?mode=clean'
+12 03 * * * curl -s 'https://my.filewex.org/yJDdYNEXmB?mode=clean'
 ```
 
-6. run the install `INSTALL myconfig.conf` or install simply by hand by copying the file `filewebx` as `/www/filewebx/cgi/aiV6shujahla4ei` directory on your server if `aiV6shujahla4ei` is the unguessable name you have chosen (aka your "admin password").
+6. Optionally, you can provide a `filewebx.conf` configuration file above the root directory (e.g: `/www/filewebx/filewebx.conf`) to set some paramter in the bash syntax:
 
-**Updating**: just re-run step 6.
+```
+validity=100  # default expiration date, in days
+passlen=12    # length of the various generfated random passords and tokens
+redirect_only_dumb=    # "yes" to only tweak the download urls for CLI tools
+```
+
+You could also use re-declarations of bash variables and functions for advanced customisations, but these may break on upgrades. 
+
+### Updating
+To update, just re-clone the repository and copy the `filewebx` and `filewebdl` as above in step 4.
 
 ## Usage
 
-You can then use the script by going to the URL to the admin account provided by the install script, in our example: `https://filewex.mysite.com/cgi/aiV6shujahla4ei`
-If you are using it from an IP address defined in your web server config (in the examples 88.181.8.140 or 32.166.24.45), you can just go to `https://filewex.mysite.com`. It will redirect also to the admin account above.
-- The default tab, Upload files, Uploading a file `my-sent-file.foo` will provide you with a link to give to others, in the form  `https://filewex.mysite.com/my-sent-file.foo`. So try not to use too easily guessable names. Characters other than alphanumeric and dot, hyphen and underscore are removed from the file names for safety. Too short file names will have some random string prepended. 
-  Files are kept 100 days by default.
-- The See logs tab enable to see who (their IP, actually) downloaded the uploaded files
-- The Admin tab, present only for the admin account, allow to create guests accounts and lists all the active ones. A guest account will only see its own uploaded files. A guest account will have a URL of the form  `https://filewex.mysite.com/cgi/password~guestid`, with links to download its files in the  form `https://filewex.mysite.com/~guestid/my-sent-file.foo`
-  For convenience, try to keep the guest ids as short as possible. Only alphanumeric and dot, hyphen and underscore characters are accepted.
-- The New Window tab just opens a new browser tab to upload other files for convenience
+You can then use the script by going to the URL to the admin account provided by the install script, in our example: `https://my.filewebx.org/yJDdYNEXmB`
+If you are using it from an IP address defined in your web server config (in the examples 88.181.8.140 or 32.166.24.45), you can just go to `https://my.filewebx.org`. It will redirect also to the admin account above.
 
-## Manual administration
-If you want to perform some other administrative action, they must be done for now on the server itself, as root or as the web server account.
-Basically, with the example settings:
-- The main script `aiV6shujahla4ei` is in `/www/filewebx/cgi/` as well as `cgibashopts`
-- Guest scripts are symbolic links to `aiV6shujahla4ei`  in `/www/filewebx/cgi/` named `guestpassword~guestid` (e.g: `ieda6Waiwan9ath~Bob`)
-- Files are stored in the `/www/filewebx/data/` directory for the admin account, and `/www/filewebx/data/~guestid/` for the guests
-- Expiration dates of a file is the date of a dot-prefixed empty file of the same name
+- The default tab, Upload files, Uploading a file `my-sent-file.foo` will provide you with a link to give to others, in the form  `https://my.filewebx.org/_/OLw6bZrh65lj.my-sent-file.foo`. Note that a random "password" (more precisely, a token) is generated, `OLw6bZrh65lj` which is the important part, the rest being a kind of label for easier handling by humans.
+You can omit the `.my-sent-file.foo` for a shorter (but cryptic) URL, or add whatever "comment" you want, separated by ay non-alphanumeric character, e.g: `https://my.filewebx.org/_/OLw6bZrh65lj-typos-corrected`
 
-```
+- Past uploaded files are shown. Clicking on one shows you the download logs, and allow you to add a note and chnage the expiration date. Files are kept 100 days by default.
+
+- The Logs tab enable to see all dpoownload logs of all files under the current account
+
+- The Admin tab, present only for the admin account, allows to create guests accounts and lists all the active ones. A guest account will only see its own uploaded files. A guest account will have a URL of the form  `https://my.filewebx.org/guestpassword~guestid`, with links to download its files in the  form `https://my.filewebx.org/_/~guestid/filepassword.my-sent-file.foo`
+For convenience, try to keep the guest ids as short as possible. Only alphanumeric and dot, hyphen and underscore characters are accepted.
+
+Guest accounts marked as admin have a link to get back to the main admin account. If you give to a friend the URL of a non-admin guest account, he will be able to upload files and get sharable download links to them, but will not be able to access the main admin account not create other guests.
+
+
+## Data structure and Implementation
+
+```text
 /www/filewebx/
-          |—— cgi/
-              |—— aiV6shujahla4ei
-              |—— ieda6Waiwan9ath~Bob
-              |—— cgibashopts
-          |—— data/
-              |—— file1
-              |—— .file1
-              |—— file2
-              |—— .file2
-              |—— ~Bob/
-                  |—— file3
-                  |—— .file3
+├── filewebx.conf           # Global configuration (optional)
+├── cgi/                    # The Web Root
+│   ├── yJDdYNEXmB          # filewebx, renamed as your admin "password"
+│   ├── _                   # filewebdl script, renamed as underscore
+│   ├── cgibashopts         # bash library used by filewebx
+│   └── PZdn7Lz7a7~Anna     # symlink to yJDdYNEXmB. Anna guest account
+└── data/                   # Writable by www-data (logs and metadata)
+    ├── trash/              # "deleted" files and accounts are moved there
+    ├── v3u1WS.log          # access logs for file of token v3u1WS
+    ├── v3u1WS.meta         # metadata (name, note, ...) for same
+    ├── v3u1WS,foo.txt      # the file itself, of real name foo.txt
+    └── ~Anna/              # account and trackers info for Anna
+        ├── meta            # metadata of the Anna account (notes, is-admin)
+        ├── trash           # "deleted" files and accounts of Anna
+        ├── aqVnQ.log       # access logs for file of token aqVnQ of Anna
+        ├── aqVnQ.meta      # metadata for file of token aqVnQ of Anna
+        └── aqVnQ.bar.jpg   # the file itself, of real name bar.jpg
+
 ```
 
-Thus, you can manually perform actions such as:
-- **removing a guest account** `Bob`
-  ```
-  rm -r /www/filewebx/{data/~Bob,cgi/*~Bob};
-  ```
-- **removing an uploaded file**  `my-sent-file.foo`
-  - from the admin account: `rm /www/filewebx/data/my-sent-file.foo`
-  - from a guest account guestid `rm /www/filewebx/data/~Bob/my-sent-file.foo`
-- **changing the expiration date of a file** The expiration date of a file is the date of the corresponding "dotfile", an empty file with the same name as the file but prefixed by a dot. So, for instance, to set the expiration date of `my-sent-file.foo` to April 1st, 2030, do a:
-   `touch -d 2030-04-01 /www/filewebx/data/.my-sent-file.foo`
-   Or, for a guestid file, `touch -d 2030-04-01 /www/filewebx/data/~Bob/.my-sent-file.foo`
-   Removing the dotfile will reset the expiration date 100 days in the future during the daily clean
-- **changing the password of a guest account** in case it is compromised, just change the "password" part (before the tilde) of the cgi script link. E.g.:
+Metadata — bash Associatrive Arrays — are stored in "bash native" format via `declare -p` via the embedded functions of `metadata.sh` of my collection of bash snippets [colas-bash-lib](https://github.com/ColasNahaboo/colas-bash-lib)
+
+Logs are lines of 4 tab-separated values: date, ip-adress, adress-name, user-agent.
+
+**changing the main password** in case it is compromised, just log on your server to rename the main filewebx script. E.g.:
+  `mv /www/filewebx/cgi/yJDdYNEXmB /www/filewebx/cgi/hthie9Oweeob`
+Do not forget also to change it in your apache configuration, if present.
+
+**changing the password of a guest account** in case it is compromised, just log on your server to change the "password" part (before the tilde) of the cgi script link. E.g.:
   `mv /www/filewebx/cgi/ieda6Waiwan9ath~Bob /www/filewebx/cgi/fohthie9Owee~Bob`
 
 ## License
+
 MIT License - (c) 2026 Colas Nahaboo.
 In a nutshell: do whatever you want with this, and please credit me, but expect no warranty.
 
 ## Release notes
+
+- v2.0.0 2026-03-11
+  - Two-Script Architecture: The main `filewebx` script handles the UI and management, while a minimal `_` script (powered by `filewebdl`) handles logging and file delivery with the original file name.
+  - Improved Logging: Tab-separated logs, the same form as for [mailpixtracker](https://github.com/ColasNahaboo/mailpixtracker), this avoids relying on having to read the web server logs, which are often protected and in variable formats.
+  - Guest Accounts: Admin can create "Guest" environments via simple URL tokens, keeping different users' file lists isolated. Some guests can be declared admins, to ease switching accounts when using different guest accounts for different contexts, but by the same person.
+  - More admin features: deleting files, changing expiration dates, editing and deleting guest accounts.
 - v1.0.0 2026-03-03 First public release
