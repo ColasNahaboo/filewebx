@@ -114,14 +114,12 @@ gui-upload(){
 	        metas[hname]="$(htmlencode "$filename")"
                 metas[hsize]="$(human_size "$size")"
                 # we use dots in urls, safer than commas
-                metas[url]="${urld}/$pass.${metas[uname]}"
-                metas[surl]="${urld}/$pass"
+                metas[url]="${urld}/$pass/${metas[uname]}"
+                metas[surl]="${urld}/$pass/"
                 meta-write-raw "$meta"
                 info "success!<p>
-	        File uploaded (${metas[hsize]}), can be downloaded as:
-                <p class=resultok><b><code>${metas[url]}</code></b><br>
-                Short URL:<br><b><code>${metas[surl]}</code>
-                </p>
+	        File uploaded (${metas[hsize]}), can be downloaded as the shareable link:
+                <p><code class=url>${metas[url]}</code></p>
 	        Will be removed in $validity days, on ${metas[expire]}."
 	    else
 	        info "error: file transfer interrupted!"
@@ -211,8 +209,11 @@ gui-log(){
     upped="${metas[upload]}"
     ((days = ($(date -d "${metas[expire]}" +%s) - now) / 86400 ))
     # Section: Edit file metadata
-    echo "<form method=POST enctype='multipart/form-data' class=container>
-          <b>${metas[hname]}</b><ul><li><span class=status>uploaded on ${upped%%T*}</span><li><span class=status>URL:</span> <b><code>${metas[url]}</code></b><li><span class=status>Short URL:</span> <b><code>${metas[surl]}</code></b></ul>
+    echo "<div class=minicontainer><b>${metas[hname]}</b>
+          <span class=status>(uploaded on ${upped%%T*})</span><p>
+          <span class=status>Shareable link:</span><br>
+          <code class=url>${metas[url]}</code></div>
+          <form method=POST enctype='multipart/form-data' class=minicontainer>
           <input type=hidden name=savefile value='$pass'>
           <table>
           <tr><td>Note:<td colspan=2><input type=text name=note size=64 value='${metas[note]}'>
@@ -657,11 +658,12 @@ th, td { text-align: left; padding: 8px 12px; border: 1px solid #e1e4e8; }
 .log-line:nth-child(even) { background: #f0f0ff; }
 .log-line:nth-child(odd)  { background: #fafaff; }
 .log-line:hover { background: var(--highlight); border-left-color: var(--ip); }
+.no-select { user-select: none; -webkit-user-select: none; /* Safari */ }
 
 /* Filewebx-specific */
 input,textarea {padding: 0.2rem 0.2rem}
 span.status {font-size:1.2rem; color: var(--dim); font-size:small}
-code.fwxcode { font-size: large; background: #ffffdd; }
+code.url { background: #ffffee; display: inline-block; padding:4px;}
 tr.unparsed { background: var(--bg); }
 table.mono tr th a {text-decoration: none; color: inherit;}
 .fwxlog td { padding: 0.1rem 0.4rem; }

@@ -9,9 +9,7 @@ It is your own simpler WeTransfer / MASV / Smash / SwissTransfer / JumpShare / p
 - It does not require logins and passwords for convenience and simplicity, but still provides significant security by using [Capability URLs](https://www.w3.org/TR/capability-urls/) , i.e. the urls used are not discoverable nor guessable, even by people you send links to. E.g:
   * Admin URL: `https://my.filewebx.org/adminpassword`
   * Guest URL: `https://my.filewebx.org/guestpassword~guestid`
-  * Download URL: `https://my.filewebx.org/_/filepassword.filename` \
-    Or short version: `https://my.filewebx.org/_/filepassword` \
-    Or customized: `https://my.filewebx.org/_/filepassword.anything`
+  * Download URL: `https://my.filewebx.org/_/filepassword/filename`
 - Easy to deploy and upgrade: 3 bash scripts.
 - Data is kept as plain files, so easy to administrate
 - It is privately self-hosted: everything is on your own server, nothing is handled by a third party.
@@ -56,8 +54,7 @@ For other servers (nginx, litespeed, caddy, ...) just ask your favorite AI to co
 
 ```
 validity=100  # default expiration date, in days
-passlen=12    # length of the various generfated random passords and tokens
-redirect_only_dumb=    # "yes" to only tweak the download urls for CLI tools
+passlen=12    # length of the various generated random passords and tokens
 ```
 
 You could also use re-declarations of bash variables and functions for advanced customisations, but these may break on upgrades. 
@@ -70,8 +67,7 @@ To update, just re-clone the repository and copy the `filewebx` and `filewebdl` 
 You can then use the script by going to the URL to the admin account provided by the install script, in our example: `https://my.filewebx.org/yJDdYNEXmB`
 If you are using it from an IP address defined in your web server config (in the examples 88.181.8.140 or 32.166.24.45), you can just go to `https://my.filewebx.org`. It will redirect also to the admin account above.
 
-- The default tab, Upload files, Uploading a file `my-sent-file.foo` will provide you with a link to give to others, in the form  `https://my.filewebx.org/_/OLw6bZrh65lj.my-sent-file.foo`. Note that a random "password" (more precisely, a token) is generated, `OLw6bZrh65lj` which is the important part, the rest being a kind of label for easier handling by humans.
-You can omit the `.my-sent-file.foo` for a shorter (but cryptic) URL, or add whatever "comment" you want, separated by ay non-alphanumeric character, e.g: `https://my.filewebx.org/_/OLw6bZrh65lj-typos-corrected`
+- The default tab, Upload files, Uploading a file `my-sent-file.foo` will provide you with a link to give to others, in the form  `https://my.filewebx.org/_/OLw6bZrh65lj/my-sent-file.foo`. Note that a random "password" (more precisely, a token) is generated, `OLw6bZrh65lj` which is the important part, the rest being a kind of label for easier handling by humans.
 
 ![](doc/screenshot-1.png)
 
@@ -81,7 +77,7 @@ You can omit the `.my-sent-file.foo` for a shorter (but cryptic) URL, or add wha
 
 - The Logs tab enable to see all dpoownload logs of all files under the current account
 
-- The Admin tab, present only for the admin account, allows to create guests accounts and lists all the active ones. A guest account will only see its own uploaded files. A guest account will have a URL of the form  `https://my.filewebx.org/guestpassword~guestid`, with links to download its files in the  form `https://my.filewebx.org/_/~guestid/filepassword.my-sent-file.foo`
+- The Admin tab, present only for the admin account, allows to create guests accounts and lists all the active ones. A guest account will only see its own uploaded files. A guest account will have a URL of the form  `https://my.filewebx.org/guestpassword~guestid`, with links to download its files in the  form `https://my.filewebx.org/_/~guestid/filepassword/my-sent-file.foo`
 For convenience, try to keep the guest ids as short as possible. Only alphanumeric and dot, hyphen and underscore characters are accepted.
 
 Guest accounts marked as admin have a link to get back to the main admin account. If you give to a friend the URL of a non-admin guest account, he will be able to upload files and get sharable download links to them, but will not be able to access the main admin account not create other guests.
@@ -113,7 +109,7 @@ Guest accounts marked as admin have a link to get back to the main admin account
 
 ```
 
-Metadata — bash Associatrive Arrays — are stored in "bash native" format via `declare -p` via the embedded functions of `metadata.sh` of my collection of bash snippets [colas-bash-lib](https://github.com/ColasNahaboo/colas-bash-lib)
+Metadata — bash Associative Arrays — are stored in "bash native" format via `declare -p` via the embedded functions of `metadata.sh` of my collection of bash snippets [colas-bash-lib](https://github.com/ColasNahaboo/colas-bash-lib)
 
 Logs are lines of 4 tab-separated values: date, ip-adress, adress-name, user-agent.
 
