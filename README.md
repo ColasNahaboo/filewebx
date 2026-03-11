@@ -25,7 +25,7 @@ It should work on any linux system with a web server and a CGI interface. Tested
 
 ## Installation
 
-1. Create a web site. Suppose the files will reside at `/www/filewebx`, you will need to create the directory with 2 subdirectories in it (if www-data is the account which runs your server, it can be lshttps for openlitespeed):
+1. Create a web site. Suppose the files will reside at `/www/filewebx/`, you will need to create the directory with 2 subdirectories in it (if www-data is the account which runs your server, it can be lshttps for openlitespeed):
    
 ```
 mkdir -p /www/filewebx/{data,cgi};  chown -R www-data:www-data /www/filewebx
@@ -35,7 +35,7 @@ mkdir -p /www/filewebx/{data,cgi};  chown -R www-data:www-data /www/filewebx
 
 2. Choose an "admin password", which weill be the URL of the main aadmin dahsboard. You can run the provided `./doc/random-string.sh N` to generate one. For example in this doc, `yJDdYNEXmB`. The longer, the safer.
 3. configure it. See for instance how to do it for apache, at the url https://my.filewex.org and a directory `/www/filewebx` and the admin password `yJDdYNEXmB` in the file [doc/apache-sample.conf](apache-sample.conf).
-   It did not include the SSL certificates, install them as you are used to. I personally use a wildcard sertificate from [let's encrypt](https://letsencrypt.org/) that I set in the main apache config, so I do not need to mention it in my virtual hosts.
+Install the SSL certificates if needed. I personally use a wildcard sertificate from [let's encrypt](https://letsencrypt.org/) that I set in the main apache config, so I do not need to mention it in my virtual hosts.
 For other servers (nginx, litespeed, caddy, ...) just ask your favorite AI to convert `doc/apache-sample.conf` into a configuration specific to your setup.
 
 4. copy into your `cgi` dir (e.g: `/www/filewebx/cgi`) the files:
@@ -73,7 +73,11 @@ If you are using it from an IP address defined in your web server config (in the
 - The default tab, Upload files, Uploading a file `my-sent-file.foo` will provide you with a link to give to others, in the form  `https://my.filewebx.org/_/OLw6bZrh65lj.my-sent-file.foo`. Note that a random "password" (more precisely, a token) is generated, `OLw6bZrh65lj` which is the important part, the rest being a kind of label for easier handling by humans.
 You can omit the `.my-sent-file.foo` for a shorter (but cryptic) URL, or add whatever "comment" you want, separated by ay non-alphanumeric character, e.g: `https://my.filewebx.org/_/OLw6bZrh65lj-typos-corrected`
 
+![](doc/screenshot-1.png)
+
 - Past uploaded files are shown. Clicking on one shows you the download logs, and allow you to add a note and chnage the expiration date. Files are kept 100 days by default.
+
+![](doc/screenshot-2.png)
 
 - The Logs tab enable to see all dpoownload logs of all files under the current account
 
@@ -81,6 +85,8 @@ You can omit the `.my-sent-file.foo` for a shorter (but cryptic) URL, or add wha
 For convenience, try to keep the guest ids as short as possible. Only alphanumeric and dot, hyphen and underscore characters are accepted.
 
 Guest accounts marked as admin have a link to get back to the main admin account. If you give to a friend the URL of a non-admin guest account, he will be able to upload files and get sharable download links to them, but will not be able to access the main admin account not create other guests.
+
+![](doc/screenshot-3.png)
 
 
 ## Data structure and Implementation
