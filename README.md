@@ -34,7 +34,7 @@ mkdir -p /www/filewebx/{data,cgi};  chown -R www-data:www-data /www/filewebx
 2. Choose an "admin password", which will be the URL of the main admin dahsboard. You can run the provided `./doc/random-string.sh N` to generate one. For example in this doc, `yJDdYNEXmB`. The longer, the safer.
 
 3. configure it. See for instance how to do it for apache, at the url https://my.filewex.org and a directory `/www/filewebx` and the admin password `yJDdYNEXmB` in the file [doc/apache-sample.conf](apache-sample.conf).
-Install the SSL certificates if needed. I personally use a wildcard sertificate from [let's encrypt](https://letsencrypt.org/) that I set in the main apache config, so I do not need to mention it in my virtual hosts.
+Install the SSL certificates if needed. I personally use a wildcard certificate from [let's encrypt](https://letsencrypt.org/) that I set in the main apache config, so I do not need to mention it in my virtual hosts.
 For other servers (nginx, litespeed, caddy, ...) just ask your favorite AI to convert `doc/apache-sample.conf` into a configuration specific to your setup.
 
 4. copy into your `cgi` dir (e.g: `/www/filewebx/cgi`) the files:
