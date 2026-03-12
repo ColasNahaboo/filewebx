@@ -238,7 +238,7 @@ gui-log(){
 ########### META modification, then redirect to log page
 
 save-file(){
-    local pass="$1" note="$2" exp="$3" filename="$4" meta metas expire
+    local pass="$1" note="$2" exp="$3" filename="$4" meta metas
     meta="$data"/"$pass".meta
     [[ -e "$meta" ]] || redirect "?info=error:+edit+unknown+file+id:+$pass"
     meta-read-raw "$meta"
@@ -521,7 +521,7 @@ clean() {
     local now=$(date +%s) meta pass trash
     echo "Content-Type:text/plain$nl"
     $isadmin || { echo "clean: must be admin, aborted!"; exit 0;}
-    for meta in "$data/."* "$data/~"*/*.meta; do
+    for meta in "$data/"*.meta "$data/~"*/*.meta; do
         [[ -e "$meta" ]] || continue # no match
         pass="${meta##*/}"; pass="${pass%.*}"
         meta-read-raw "$meta"
@@ -531,7 +531,7 @@ clean() {
             mv "${meta%.meta}"[.,]*  "$trash"
         fi
     done
-    find "$data" -type d -name trash -exec rm -rf {} \;
+    find "$data" -depth -type d -name trash -exec rm -rf {} \;
 }
 
 ############ Metadata functions
@@ -590,6 +590,19 @@ random_string() { # LC_ALL=C avoids unicode multibyte mess
 htmlencode() {
     local str="${1//&/\&amp;}"; str="${str//</\&lt;}"; str="${str//>/\&gt;}"
     str="${str//\"/\&quot;}"; echo "${str//\'/\&#39;}"
+}
+
+# Encode in the %xx form reserved characters for use in URLS
+# Reserved charachers are all non alphanumeric, or -_.~
+urlencode() {
+    local length="${#1}" i c
+    for (( i = 0; i < length; i++ )); do
+        c="${1:i:1}"
+        case $c in
+            [-_.~[:alnum:]]) echo -n "$c" ;;
+            *) printf '%%%02X' "'$c" ;;
+        esac
+    done
 }
 
 ###################### CSS Style
@@ -765,7 +778,8 @@ fi
 command -v tac >/dev/null 2>&1 || tac() { sed '1!G;h;$!d' "$@"; }
 # Missing commands
 miss=
-for i in realpath urlencode; do
+# shellcheck disable=SC2043
+for i in realpath; do
     command -v "$i" >/dev/null 2>&1 || miss="$miss\"$i\" not found!"$'\n'
 done
 [[ -n "$miss" ]] && rawerr "$miss"
