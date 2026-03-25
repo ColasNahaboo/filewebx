@@ -140,6 +140,7 @@ In a nutshell: do whatever you want with this, and please credit me, but expect 
 
 ## Release notes
 
+- v2.0.1 2026-03-25 "copy icon" button to copy the shareable link
 - v2.0.0 2026-03-11
   - Two-Script Architecture: The main `filewebx` script handles the UI and management, while a minimal `_` script (powered by `filewebdl`) handles logging and file delivery with the original file name.
   - Improved Logging: Tab-separated logs, the same form as for [mailpixtracker](https://github.com/ColasNahaboo/mailpixtracker), this avoids relying on having to read the web server logs, which are often protected and in variable formats.

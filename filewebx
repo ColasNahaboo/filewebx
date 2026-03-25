@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2155,SC1090,SC1091
-VERSION=2.0.0
+VERSION=2.0.1
 PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
@@ -50,6 +50,7 @@ header(){
     echo "Content-Type: text/html$nl$nl<html><head>
 <link rel=icon type='image/png' sizes='32x32' href='data:image/png;base64,$logo'>
 <style>$style</style><title>$title$titlelabel</title>
+<script>$javascript</script>
 </head><body><header class='main-header'>
 <div class='brand'><a href='$url'><img class=logo src='data:image/png;base64,$logo'> $title$guestlabel</a></div><nav class='nav-tabs'>"
     [[ $tabs =~ ,upload(!)?, ]] &&
@@ -118,7 +119,8 @@ gui-upload(){
                 meta-write-raw "$meta"
                 info "success!<p>
 	        File uploaded (${metas[hsize]}), can be downloaded as the shareable link URL:
-                <p><code class=url>${metas[url]}</code></p>
+                <p><code class=url>${metas[url]}</code>&nbsp;<span class='copy-container'><button class='copy-btn' onclick='copyToClipboard(this)' data-link='${metas[url]}'>$copyicon<span class='popup'>Link copied!</span></button></span>
+                </p>
 	        Will be removed in $validity days, on ${metas[expire]}."
 	    else
 	        info "error: file transfer interrupted!"
@@ -211,7 +213,8 @@ gui-log(){
     echo "<div class=minicontainer><b>${metas[hname]}</b>
           <span class=status>(uploaded on ${upped%%T*})</span><p>
           <span class=status>Shareable link URL:</span><br>
-          <code class=url>${metas[url]}</code></div>
+          <code class=url>${metas[url]}</code>&nbsp;<span class='copy-container'><button class='copy-btn' onclick='copyToClipboard(this)' data-link='${metas[url]}'>$copyicon<span class='popup'>Link copied!</span></button></span>
+</div>
           <form method=POST enctype='multipart/form-data' class=minicontainer>
           <input type=hidden name=savefile value='$pass'>
           <table>
@@ -695,12 +698,82 @@ table.mono tr th a {text-decoration: none; color: inherit;}
 .fwxlog .expire { font-weight: 400; color: #555; }
 .fwxlog .useragent { color: #888; font-size: 75%;}
 .fwxlog .new { background: yellow; }
+
+/* copy button */
+.copy-btn {
+  position: relative;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 4px; /* Reduced for 16x16 icon */
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+  border-color: #bbb;
+  color: #000;
+  background: #f9f9f9;
+}
+
+/* Tooltip/Popup styling */
+.popup {
+  visibility: hidden;
+  position: absolute;
+  bottom: 140%; 
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  background: #222;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+/* Small arrow below the popup */
+.popup::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -4px;
+  border: 4px solid transparent;
+  border-top-color: #222;
+}
+
+/* Animation trigger */
+.copy-btn.show .popup {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
 '
+javascript="function copyToClipboard(btn) {
+  const text = btn.getAttribute('data-link');
+  navigator.clipboard.writeText(text).then(() => {
+    // Toggle the CSS animation
+    btn.classList.add('show');
+    // Remove the class after animation ends (2s) so it can be re-clicked
+    setTimeout(() => {
+      btn.classList.remove('show');
+    }, 2000);
+  });
+}"
 
 # from a 32x32 png image with tranparent bg, via: base64 -w 0 imagefile.png
 logo='iVBORw0KGgoAAAANSUhEUgAAACkAAAAgCAYAAACPb1E+AAAAAXNSR0IB2cksfwAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZiS0dEAAAAAAAA+UO7fwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+oDARAYHA4r6JcAAAbgSURBVFjDlZhZbFxnFcd//++OPRnbIfUi72u8NQtNmpDWQBf6RENQExChQpQWWglwUYWAFxZVgEBiF/AAQiBKxfLQByQQD7RIREilgFCjIkIbuQlxU0IckippQxw7Hs93eLj7zB2HXmmke7/73e+s//M/Z3Ti1Gn76vd+yrFTS+AcmGHEl2EIohXJUWkp8YEDt3Hf4XdSbm0FhEThZYUr4WY1vI+eLHwTnikMCFZber7wzAunqdY8VW9Ua0bVe6res1Yzqus11mqeas2ztl7j6lqVPx07yexgN1Nbx5BUoEwzlVW8Hh8gQIosCI2XgTv64hkUucIiLxrCUKiAU/phdDnnePxXR1i9do3og//jUqqrhcLDe6XvLbM3I097Ds7btfV1LDFUmBxpDKPTLDVXcsg57pnbxrvvvpNKZROZA3J6ZVdUkBfxqUHgGBnsp61SSdejI7X30MO2Ul1PlLBIUVyqqCIvY5FTIyMkCz8zy4m1jOeU0VjZHXXel8T0QDfffXSe4cH+VLaBkxR+npxggAdfi5RyyAnnAlwQKhcK8XjvMfOhAZm4K0p51T2TrIOieEuGc6En/3nuIk/8+il81kxByRJXKVQO6Ouo8MkPHWLXzhtpq1QQIod5M3wmumqSgZbzXuyxPE7qU0G5NAvvS3GZMSfw0N1W4rGvf4qxkSEwY+VaLbEoC0bLiM4KM3u9CLc0/6JreXkF50R7pYIkSvFLAbiA+ffuZ3RokLPnzvON7/+CI387iQtKyGVxZFFIGnMLU86ofKUtwLuUc3XsSSdx39tv4WMPvi/0ZDZsu3bOIMR3fvgETz67gJyQrYdAAUxFiuUCmvpKNFUwqYUFhylS9vHf/oU73ryHUojaMAwtJTEyNMB/r67wu+dOhCjGMLM0bQsVVF34lGDbmoXbGvRNSSeOkBwO4bAQqcKYmx2ho6Ods0sXqHrCMhS5w7LJmAOz8v6LjM6XpiKoZLInZ3wsxyPzjAwP4kLqMWSeud0zOByLL59JoaiUEawwcHVhNsO8TwBhZpjp+oxZx0wGTPS+ga7OLbjE3d4zPTGK4fnHwmLkhUYPNAOAJOQCPnP/fn78+YfobCuH9lk9YxXrmP+F8u7atwMn4ZLUNRgdGqC6tsbv//p8Fk/F/Js7PexaHnrHHO8/fJC3zu3j259+ELwl3qUAIkUeBJATyLFz2xRIMeMY4z2b6enp5Nz5V3jp/CVSQBUoqwyvRtLetnOMjz7wHoLAAY59e3byxY8cxJslDYpso1pqDUK2jg0jhJNzIMcd+7ZTCgIWT/8r+sY3ArewzsFk7xYe/cQDVCqtCWgc4tCBu/jwPbdFVSIEYa4PaUJVAro7ygz294ERhhs5du2YAeCFFxcjrFhC8A3nxflhRkdrC9/83Dx9PT2RgpbQa0tQ5uEP3sv+N90YAcmu0xSn8m6/aZJyuRz2OgY4OaYnxzHg6aPH0+az7iBlvBeGzfPlRw4zOzUBCsJmRIoEOSBg06ZNfPaR++npqPB6rt3bp5KyVpJgS1srgwN9XL68zN9f/k+eq5vGOoxAa2srF1+9hAjo2NxOySksvxKvXb5CdX2dK1eWaQmiRM6MBc1EmBmT4yPJcwmJO2+eodxaZuHcIl4BqJbhh6bEhpxj/is/IYh6zKd+9CUGe3uivBJf+8HP+c0zx6La7KPobNzGm0EgGB4aSJU0b+x94zQSnFyMi3g4kCXlQ80tRsJjmLfUwxmJcb9pBaWmWcWc7O+iu+uGVEnvPVMTIxhw9NhCEgZLug4rbrGUCTsqBELYFBfw1IYOFbffPEvgXDpTtQRiaKCXlZVVjjx3Mt/0KweXjekCNRTAxLt23Vk3VzW2z27NbXK37hhj8+YO/r20xGtXV8n2l8rQd/hTnc5ZYyziacs3Fsk3tmG0Y2rFxNbx4dzG0q27tyHg1EtnwPt0AFNRbC03WFmDNy0ZNSzm87iHt5RS1TTQolwuMdTfl1svzU5NIMHzC4sZzlKTk9SQn8rMKMdPLHJ1ZZVazePNc/bCJWI+1HVn83DOf8v2Udrb2vNKTk+MY+b4w9HjGWDaRoWn8c7CgvDxb/0MzKitryMJFwToejmYzSCJW26aaZjPXUdHO69cfJXFC1eieXrj3Kaeei1TjnyYj0EQRPmVdvXNQFLfG01PjDVsLQGcWTofAdShuLGox4cV9NiWH1Exnw71UpMZMc88Kcg8ZjA6PNBQBEpmRtcNm5Ec5uKy6JsiURv8jdL077Wcbpbv9DMeP7B3ir7e7rpGRKjmvZl5nv7zs/zyyT+yvLKKxUrGxChtyBUx1oyMIorxahFpqbEPzYxFe7ZNcO+77qarszOdl6JN/wO3CPQKPRASjQAAAABJRU5ErkJggg=='
 
 editicon='iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IB2cksfwAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+oDBxMhHVCFtD4AAAG8SURBVDjLpdS7axRBHAfwz+wFCy3TCD5u8bBQBFGxFnwgMYKNEtMoiDEWiqW2IopgqQgSX2gkphFRixTiqzZWooWc7BkEi/wDGm7HZg7XkOQuZGCaHeYz3/nNzAYrbI16fgCPEXAyrBAbwLPUV2P3f2C+Lg+CRReJUWz9LGLCDuI5SmzDDezoS4MncBXru4T6iq0VbAI78SXBA6FRz4dxG2fxGr+XAP9gD15gPLbjaKiFcRzBoWareN+Hi7jQbBWTPdRs/zzsQRWDDNtT5G7YPrzEeFnqYEerWAfs5TT3JuxJjHE0y9xP2GAV6wlM2CtMtMv2mRDCPRzDYFmWHxr1/OOmDRtDT+A8bKSW1e5iKCV7F2OsYVcIMesKVrGybaSW1cZwvIMtNi/rgj0tYxzJasYwjMPNVvF2qV1lC2D96WpMivF0FkIVe9Ot5gslPIc5XLJMDPrmpVuD85jF5/Tge8YWSngK/ViLR8iXg3USxtThGy7jVrNVzHZNk2Wr0l+orILT6flNN1vFFKZ6TRNC2I9f32dmYhW8joeNej6HT5W03doW3Ew7+rdIOowhXMHmZZTrB641W8Wd6se/E8WtW4e9Pz0AAAAASUVORK5CYII='
+
+copyicon="<svg viewBox='0 0 16 16' width='16' height='16' stroke='currentColor' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'><rect x='5.5' y='5.5' width='8' height='8' rx='1'></rect><path d='M3.5 10.5h-1a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v1'></path></svg>"
 
 ################################# Check requirements
 rawerr(){ echo $'Content-Type: text/plain\n\nError: '"$*"; exit 1;}
