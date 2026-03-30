@@ -136,9 +136,9 @@ gui-upload(){
     <div id='progress-container' class=container style='display:none; width:600px; border:1px solid #ccc; margin:20px;'>
         <div id='progress-bar' style='width:0%; height:20px; background-color:green; color:white; text-align:center;'>0%</div>
     </div></div>
-    <form id='upload-form' method='POST' enctype='multipart/form-data' class=container><table>
-         <tr><td>Select$another file to upload: <td><input class=btn type='file' id='file-input' name='file' size='64' onchange='checkFile()'>
-            <tr id='upload-button'><td>Then click:<td><input class='btn btn2' type='submit' value='Upload'> 
+    <form id='upload-form' method='POST' enctype='multipart/form-data' class=container><table class=custom>
+         <tr><td class=shrink>Select$another file to upload: <td><input class=btn type='file' id='file-input' name='file' size='64' onchange='checkFile()'>
+            <tr id='upload-button' class=expand><td>Then click:<td><input class='btn btn2' type='submit' value='Upload'> 
         </table>
     </form>
     <script>
@@ -679,6 +679,19 @@ th, td { text-align: left; padding: 8px 12px; border: 1px solid #e1e4e8; }
 .log-line:nth-child(odd)  { background: #fafaff; }
 .log-line:hover { background: var(--highlight); border-left-color: var(--ip); }
 .no-select { user-select: none; -webkit-user-select: none; /* Safari */ }
+
+table .custom {
+  width: 100%;           /* Ensure the table itself spans the full page */
+  border-collapse: collapse;
+}
+.shrink {
+  white-space: nowrap;  /* Prevents the text from wrapping, keep column tight */
+  width: 1%;            /* Forces calculating the minimum width needed */
+}
+.expand {
+  width: 100%;          /* Take all available "leftover" space */
+  /* background-color: #f9f9f9; /* Visual aid to see the fill */
+}
 
 /* Filewebx-specific */
 input,textarea {padding: 0.2rem 0.2rem}
