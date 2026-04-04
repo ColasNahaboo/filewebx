@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2155,SC1090,SC1091
-VERSION=2.0.2
+VERSION=2.0.3
 PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
@@ -119,7 +119,7 @@ gui-upload(){
                 meta-write-raw "$meta"
                 info "success!<p>
 	        File uploaded (${metas[hsize]}), can be downloaded as the shareable link URL:
-                <p><code class=url>${metas[url]}</code>&nbsp;<span class='copy-container'><button class='copy-btn' onclick='copyToClipboard(this)' data-link='${metas[url]}'>$copyicon<span class='popup'>Link copied!</span></button></span>
+                <p><code class=url>${metas[url]}</code>&nbsp;<span class='copy-container'><button type=button class='copy-btn' onclick='copyToClipboard(this)' data-link='${metas[url]}'>$copyicon<span class='popup'>Link copied!</span></button></span>
                 </p>
 	        Will be removed in $validity days, on ${metas[expire]}."
 	    else
@@ -138,35 +138,49 @@ gui-upload(){
     </div></div>
     <form id='upload-form' method='POST' enctype='multipart/form-data' class=container><table class=custom>
          <tr><td class=shrink>Select$another file to upload: <td><input class=btn type='file' id='file-input' name='file' size='64' onchange='checkFile()'>
-            <tr id='upload-button' class=expand><td>Then click:<td><input class='btn btn2' type='submit' value='Upload'> 
+            <tr id='upload-button' class=expand><td>Then click:<td><input class='btn btn2' type='submit' value='Upload' onclick='window.onbeforeunload = null;'> 
         </table>
     </form>
     <script>
-    document.getElementById('upload-form').onsubmit = function(e) {
-        e.preventDefault();
-        var file = document.getElementById('file-input').files[0];
-        if (!file) return;
-        var formData = new FormData();
-        formData.append('file', file);
-        var xhr = new XMLHttpRequest();
-        document.getElementById('progress-container').style.display = 'block';
-        xhr.upload.onprogress = function(e) {
-            if (e.lengthComputable) {
-                var percent = Math.round((e.loaded / e.total) * 100);
-                var bar = document.getElementById('progress-bar');
-                bar.style.width = percent + '%';
-                bar.textContent = percent + '%';
-            }
-        };
-        xhr.onload = function() {
-            // Once finished, we replace the whole page with the CGI result
-            document.open();
-            document.write(xhr.responseText);
-            document.close();
-        };
-        xhr.open('POST', '', true);
-        xhr.send(formData);
+document.getElementById('upload-form').onsubmit = function(e) {
+    e.preventDefault();
+    var fileInput = document.getElementById('file-input');
+    var file = fileInput.files[0];
+    if (!file) return;
+
+    var formData = new FormData();
+    formData.append('file', file);
+    var xhr = new XMLHttpRequest();
+
+    document.getElementById('progress-container').style.display = 'block';
+
+    xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+            var percent = Math.round((e.loaded / e.total) * 100);
+            var bar = document.getElementById('progress-bar');
+            bar.style.width = percent + '%';
+            bar.textContent = percent + '%';
+        }
     };
+
+    xhr.onload = function() {
+        // --- THE FIX STARTS HERE ---
+        // 1. Kill the 'beforeunload' listener immediately
+        window.onbeforeunload = null;
+
+        // 2. Clear the file input so Firefox thinks there is no unsaved data
+        fileInput.value = \"\"; 
+
+        // 3. Now it is safe to overwrite the document
+        document.open();
+        document.write(xhr.responseText);
+        document.close();
+        // --- THE FIX ENDS HERE ---
+    };
+
+    xhr.open('POST', '', true);
+    xhr.send(formData);
+};
     function checkFile() {
         var fileInput = document.getElementById('file-input');
         var uploadButton = document.getElementById('upload-button');
@@ -213,26 +227,28 @@ gui-log(){
     echo "<div class=minicontainer><b>${metas[hname]}</b>
           <span class=status>(uploaded on ${upped%%T*})</span><p>
           <span class=status>Shareable link URL:</span><br>
-          <code class=url>${metas[url]}</code>&nbsp;<span class='copy-container'><button class='copy-btn' onclick='copyToClipboard(this)' data-link='${metas[url]}'>$copyicon<span class='popup'>Link copied!</span></button></span>
+          <code class=url>${metas[url]}</code>&nbsp;<span class='copy-container'><button type=button class='copy-btn' onclick='copyToClipboard(this)' data-link='${metas[url]}'>$copyicon<span class='popup'>Link copied!</span></button></span>
 </div>
-          <form method=POST enctype='multipart/form-data' class=minicontainer>
+          <form method=POST class=minicontainer>
           <input type=hidden name=savefile value='$pass'>
           <table>
           <tr><td>Filename:<td colspan=2><input type=text name=name size=64 value='${metas[hname]}' title='This is the name under which the file will be saved when downloading it via the shareable link URL'>
           <tr><td>Note:<td colspan=2><input type=text name=note size=64 value='${metas[note]}' title='A free comment, for your eyes only'>
           <tr><td>Expires:<td colspan=2><input type=text name=expire size=11 value='${metas[expire]}' pattern='^\d{4}-\d{2}-\d{2}|[0-9]*[1-9][0-9]*$' title='Enter a date (YYYY-MM-DD) or a number of days'>
           (in $days days) <span class=status>Enter a number of days or the expiration date as YYYY-MM-DD</span>
-          <tr><td colspan=3><input class='btn' type='submit' value='Modify'>
+          <tr><td colspan=3><input class='btn' type='submit' value='Modify'
+                  onclick='window.onbeforeunload = null;'>
           </table></form>"
     # Section: log
     echo "<div class=minicontainer>Downloads:</div><table class='fwxlog mono'>"
     printlogs "$meta" "$log" "$pass" "$now" 
     echo "</table>"
     # Section: delete file
-    echo "<form method=POST enctype='multipart/form-data' class=container>
+    echo "<form method=POST class=container>
           Or delete it:<p>
           <input type=hidden name=delfile value='$pass'>
-          <input class='btn' type='submit' value='Delete'>
+          <input class='btn' type='submit' value='Delete'
+           onclick='window.onbeforeunload = null;'>
           </table></form>"
     footer
 }
@@ -334,7 +350,7 @@ gui-admin(){
     echo "</ul></div>"
     # Section: create a new guest
     echo "<div container>
-          <form method=POST enctype='multipart/form-data' class=container>
+          <form method=POST class=container>
           Create a new guest account:<p>
           <table>
           <tr><td>Name:<td><input type=text name=newguest size=12 value=''>
@@ -343,7 +359,7 @@ gui-admin(){
           <tr><td><label for=isadmin style='cursor: pointer;'>Is Admin:</label>
           <td><input type=checkbox id=isadmin name=isadmin value=yes>
           <td><i>Non-admins have no way to access the admin account. Admin guests have a tab to become the admin</i>
-          <tr><td colspan=3><input class='btn' type='submit' value='Create a new guest account'>
+          <tr><td colspan=3><input class='btn' type='submit' value='Create a new guest account' onclick='window.onbeforeunload = null;'>
           </table></form></div>"
     footer
 }
@@ -376,7 +392,7 @@ gui-guest(){
     meta-read-raw "$meta"
     [[ -n "${metas[admin]}" ]] && isadmin=checked
     # Section: Edit guest
-    echo "<form method=POST enctype='multipart/form-data' class=container>
+    echo "<form method=POST class=container>
           Edit guest account $gid:<p>
           <input type=hidden name=savegid value='$gid'>
           <table>
@@ -384,12 +400,14 @@ gui-guest(){
           <tr><td><label for=isadmin style='cursor: pointer;'>Is Admin:</label>
           <td><input type=checkbox id=isadmin name=isadmin value=yes $isadmin>
           <td><i>(has a tab to go to the admin account)</i>
-          <tr><td colspan=3><input class='btn' type='submit' value='Save'>
+          <tr><td colspan=3><input class='btn' type='submit' value='Save'
+               onclick='window.onbeforeunload = null;'>
           </table></form>"
-    echo "<form method=POST enctype='multipart/form-data' class=container>
+    echo "<form method=POST class=container>
           Or delete guest account $gid:<p>
           <input type=hidden name=delgid value='$gid'>
-          <input class='btn' type='submit' value='Delete'>
+          <input class='btn' type='submit' value='Delete'
+            onclick='window.onbeforeunload = null;'>
           </table></form>"
     footer
 }
@@ -779,7 +797,25 @@ javascript="function copyToClipboard(btn) {
       btn.classList.remove('show');
     }, 2000);
   });
-}"
+}
+// This removes the specific listener that causes the 'leave window' popup
+window.addEventListener('load', function() {
+    window.onbeforeunload = null; 
+    // If it was added via addEventListener, we clobber it
+    const originalAdd = window.addEventListener;
+    window.addEventListener = function(type, listener, options) {
+        if (type === 'beforeunload') return; // Refuse to add new ones
+        originalAdd.call(window, type, listener, options);
+    };
+});
+// This prevents the Leave site warning for all standard links
+document.addEventListener('click', function(e) {
+    const link = e.target.closest('a');
+    if (link && !link.getAttribute('target')) {
+        window.onbeforeunload = null;
+    }
+}, true);
+"
 
 # from a 32x32 png image with tranparent bg, via: base64 -w 0 imagefile.png
 logo='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'
