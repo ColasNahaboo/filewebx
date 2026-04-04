@@ -140,6 +140,7 @@ In a nutshell: do whatever you want with this, and please credit me, but expect 
 
 ## Release notes
 
+- v2.0.3 2026-04-04 ui: fix the "leaving window?" diualog apperaing sometimes
 - v2.0.2 2026-03-30 ui: avoid upload button moving to the right on large windows
 - v2.0.1 2026-03-25 "copy icon" button to copy the shareable link
 - v2.0.0 2026-03-11
