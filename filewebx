@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2155,SC1090,SC1091
-VERSION=2.0.3
+VERSION=2.0.4
 PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
@@ -236,7 +236,15 @@ gui-log(){
     echo "<div class=minicontainer><b>${metas[hname]}</b>
           <span class=status>(uploaded on ${upped%%T*})</span><p>
           <span class=status>Shareable link URL:</span><br>
-          <code class=url>${metas[url]}</code>&nbsp;<span class='copy-container'><button type=button class='copy-btn' onclick='copyToClipboard(this)' data-link='${metas[url]}'>$copyicon<span class='popup'>Link copied!</span></button></span>
+<div class='copy-wrapper'>
+  <input type='text' 
+         class='copy-input' 
+         value='${metas[url]}'
+         style='width: $((${#metas[url]}+2))ch;'
+         readonly 
+         onclick='copyEffect(this)' 
+         title='Click to copy'>
+  <span class='copy-icon-trigger'  title='Click to copy' onclick='copyEffect(this.previousElementSibling)'>$copyicon</span><span class='copy-popup'>Copied!</span>
 </div>
           <form method=POST class=minicontainer>
           <input type=hidden name=savefile value='$pass'>
@@ -723,7 +731,6 @@ table .custom {
 /* Filewebx-specific */
 input,textarea {padding: 0.2rem 0.2rem}
 span.status {font-size:1.2rem; color: var(--dim); font-size:small}
-code.url { background: #ffffee; display: inline-block; padding:4px;}
 tr.unparsed { background: var(--bg); }
 table.mono tr th a {text-decoration: none; color: inherit;}
 .fwxlog td { padding: 0.1rem 0.4rem; }
@@ -758,7 +765,7 @@ table.mono tr th a {text-decoration: none; color: inherit;}
 
 .copy-input {
   border: none;
-  background: none;
+  background: #f0f8ff;
   font-family: monospace;
   font-size: 13px;
   color: #333;
