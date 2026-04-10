@@ -109,6 +109,7 @@ Guest accounts marked as admin have a link to get back to the main admin account
 │   ├── cgibashopts         # bash library used by filewebx
 │   └── PZdn7Lz7a7~Anna     # symlink to yJDdYNEXmB. Anna guest account
 └── data/                   # Writable by www-data (logs and metadata)
+    ├── meta                # global metadata (cached client timezones)
     ├── trash/              # "deleted" files and accounts are moved there
     ├── v3u1WS.log          # access logs for file of token v3u1WS
     ├── v3u1WS.meta         # metadata (name, note, ...) for same
@@ -140,6 +141,7 @@ In a nutshell: do whatever you want with this, and please credit me, but expect 
 
 ## Release notes
 
+- v2.0.5 2026-04-10 displayed dates are now in the timezone of the client browser, not anymore in the timezone of the server
 - v2.0.4 2026-04-05 ui: fix the "copy url" button looks
 - v2.0.3 2026-04-04 ui: fix the "leaving window?" dialog appearing sometimes
 - v2.0.2 2026-03-30 ui: avoid upload button moving to the right on large windows

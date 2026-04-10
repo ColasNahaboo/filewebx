@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2155,SC1090,SC1091
-VERSION=2.0.4
+VERSION=2.0.5
 PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
@@ -9,7 +9,7 @@ copyright='(c)2026 Colas Nahaboo, MIT License'
 configfile='../filewebx.conf'
 validity=100
 passlen=12                # length of the random "passwords", 10^14 combinations
-declare -g root_url adminpass url urld data nl sp version gid isadmin isgadmin
+declare -g root_url adminpass url urld data nl sp version gid isadmin isgadmin servertzone clienttzone dateformat
 lastip="$REMOTE_ADDR"
 
 ###################### Common
@@ -22,6 +22,19 @@ init(){
     data=$(realpath '../data')       # metadata, logs, caches, guest ids...
     nl=$'\n'; sp='&nbsp;'            # some useful constants
     version="<p class=version><a href='$source'>${source##*/}</a> v$VERSION, $copyright</p>"
+
+    servertzone=$(timedatectl|grep -oP 'Time zone: *\K[^, (]*')
+    dateformat='%Y-%m-%d.%Hh%M,%S' # dates format in logs. ISO-ish but readable 
+    meta-read-raw "$data/meta"
+    if [[ -z "${metas[tzone-$REMOTE_ADDR]}" ]]; then
+        clienttzone=$(get-client-tzone "$REMOTE_ADDR")
+        [[ -z "$clienttzone" ]] && clienttzone="$servertzone"
+        metas[tzone-$REMOTE_ADDR]="$clienttzone"
+        meta-write-raw "$data/meta" # cache it
+    else
+        clienttzone="${metas[tzone-$REMOTE_ADDR]}"
+    fi
+    
     # are we the admin, or a guest account?
     if [[ $SCRIPT_NAME =~ /([[:alnum:]]+)([~][-_.[:alnum:]]+)$ ]]; then
         gid="/${BASH_REMATCH[2]}"       # guest id, in the form "/~guestid"
@@ -324,7 +337,7 @@ gui-logs(){
 # print all the log for one file, but on a single line for sorting by date
 printlogs(){
     local meta="$1" log="$2" pass="$3" now="$4"
-    local date ip host agent qhost qagent days
+    local rdate idate sdate date ip host agent qhost qagent days
     meta-read-raw "$meta"
     ((days = ($(date -d "${metas[expire]}" +%s) - now) / 86400 ))
     echo -n "<!--${metas[upload]}--><tr class=file><th class=file colspan=3><a href='?mode=log&pass=$pass' title='more info'>${metas[hname]}</a></th><th class=expire>Expires in $days days on ${metas[expire]}</tr>" # sort key
@@ -333,7 +346,10 @@ printlogs(){
         return
     fi
     echo -n "<tr class=legend><th>Date+Time<th>IP address<th>Hostname<th>User Agent</tr>"
-    while IFS=$'\t' read -r date ip host agent; do
+    while IFS=$'\t' read -r rdate ip host agent; do
+        idate="$(tr '.h,' 'T::' <<<"$rdate")"
+        sdate=$(date -d "$idate" +'%Y-%m-%d %H:%M:%S %z')
+        date=$(TZ="$clienttzone" date -d "$sdate" +"$dateformat") 
         if [[ "$ip" != "$lastip" ]]; then
             lastip="$ip"
             rowcolor "$ip"
@@ -641,6 +657,13 @@ urlencode() {
             *) printf '%%%02X' "'$c" ;;
         esac
     done
+}
+
+# Warning: the use of this free service is limited to 45 hits/mn. Cache result!
+get-client-tzone(){
+    local ip="$1"
+    [[ $ip =~ ^(192\.168|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.) ]] && ip=
+    curl -s "http://ip-api.com/line/$ip?fields=timezone"
 }
 
 ###################### CSS Style
