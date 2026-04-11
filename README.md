@@ -67,7 +67,7 @@ You could also use re-declarations of bash variables and functions for advanced 
 Optionally, you can have the host gelocalized when displaying logs. Just install the [MaxMind](https://www.maxmind.com) GeoIp databases.
 If you already have them installed, they will be auto-detected and used if present at `/var/lib/GeoIP/GeoLite2-City.mmdb` and `/var/lib/GeoIP/GeoLite2-ASN.mmdb`. If they reside elsewhere, set the variables `geoipcity` and `geoipasn` in the configuration file.
 
-To install them if you do not already have them on your ser ver:
+To install them if you do not already have them on your server:
 1. [SignUp](https://www.maxmind.com/en/geolite2/signup) for a free account
 2. Generate a License Key in your account dashboard. Download the provided config file and copy it in =/etc/GeoIP.conf= on your server.
 3. Install the `mmlookup` and `geoipupdate` utilities. In Debian/Ubuntu systems: `sudo apt install geoipupdate mmdb-bin`
