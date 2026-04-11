@@ -2,12 +2,11 @@
 # shellcheck disable=SC1090
 # Mini file downloader and logger for filewebx
 # Should be named '_' in the same directory as the filewebx script
-# VERSION 2.0.0
+# VERSION 2.1.0
 # source: 'https://github.com/ColasNahaboo/filewebx'
 ################################# Filewebdl, filewebx downloader
 
 nl=$'\n';  tab=$'\t'           # some useful constants
-dateformat='%Y-%m-%d.%Hh%M,%S' # dates format in logs. ISO-ish but readable 
 configfile='../filewebx.conf'
 [[ -e "$configfile" ]] && . "$configfile"
 
@@ -32,7 +31,7 @@ if [[ $PATH_INFO =~ ^((/[~][[:alnum:]]+)?/([[:alnum:]]+))/ ]]; then
     # log only if the url was for a valid and active file:
     log="${meta%.meta}".log
     size=$(stat -c %s "$file")
-    date=$(date +"$dateformat")
+    date=$(date --iso=seconds -u)
     clienthost=$(host "$REMOTE_ADDR" | grep -oP 'domain name pointer +\K.*' | head -n 1)
     echo "$date${tab}$REMOTE_ADDR${tab}${clienthost%.}${tab}$HTTP_USER_AGENT" >>"$log"
     qname="${filename//\\/\\\\}"

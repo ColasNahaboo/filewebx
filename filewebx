@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2155,SC1090,SC1091
-VERSION=2.0.5
+VERSION=2.1.0
 PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
@@ -24,7 +24,7 @@ init(){
     version="<p class=version><a href='$source'>${source##*/}</a> v$VERSION, $copyright</p>"
 
     servertzone=$(timedatectl|grep -oP 'Time zone: *\K[^, (]*')
-    dateformat='%Y-%m-%d.%Hh%M,%S' # dates format in logs. ISO-ish but readable 
+    dateformat='%Y-%m-%d.%Hh%M,%S' # v2 dates format. ISO-ish but readable 
     meta-read-raw "$data/meta"
     if [[ -z "${metas[tzone-$REMOTE_ADDR]}" ]]; then
         clienttzone=$(get-client-tzone "$REMOTE_ADDR")
@@ -335,6 +335,7 @@ gui-logs(){
 }
 
 # print all the log for one file, but on a single line for sorting by date
+# v2 log date: 2026-03-24.21h47,48  v3 log date: 2026-04-11T05:58:20+00:00
 printlogs(){
     local meta="$1" log="$2" pass="$3" now="$4"
     local rdate idate sdate date ip host agent qhost qagent days
@@ -347,9 +348,13 @@ printlogs(){
     fi
     echo -n "<tr class=legend><th>Date+Time<th>IP address<th>Hostname<th>User Agent</tr>"
     while IFS=$'\t' read -r rdate ip host agent; do
-        idate="$(tr '.h,' 'T::' <<<"$rdate")"
-        sdate=$(date -d "$idate" +'%Y-%m-%d %H:%M:%S %z')
-        date=$(TZ="$clienttzone" date -d "$sdate" +"$dateformat") 
+        if ((${#rdate} == 25)); then # v3 log: iso UTC
+            date=$(TZ="$clienttzone" date -d "$rdate" +"$dateformat")
+        else                         # v2 log: server local time
+            idate="$(tr '.h,' 'T::' <<<"$rdate")"
+            sdate=$(date -d "$idate" +'%Y-%m-%d %H:%M:%S %z')
+            date=$(TZ="$clienttzone" date -d "$sdate" +"$dateformat") 
+        fi
         if [[ "$ip" != "$lastip" ]]; then
             lastip="$ip"
             rowcolor "$ip"

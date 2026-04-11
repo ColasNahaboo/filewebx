@@ -141,6 +141,8 @@ In a nutshell: do whatever you want with this, and please credit me, but expect 
 
 ## Release notes
 
+- v2.1.0 2026-04-11 dates are now stored in logs as UTC ISO.
+  v2 was YYYY-MM-DD.HHhMM,SS in the server local time, but still work. 
 - v2.0.5 2026-04-10 displayed dates are now in the timezone of the client browser, not anymore in the timezone of the server
 - v2.0.4 2026-04-05 ui: fix the "copy url" button looks
 - v2.0.3 2026-04-04 ui: fix the "leaving window?" dialog appearing sometimes
