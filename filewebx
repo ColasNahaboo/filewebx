@@ -20,7 +20,7 @@ init(){
     url="$root_url$SCRIPT_NAME"      # its URL
     urld="$root_url/_"               # URL of file downloader mini-script
     data=$(realpath '../data')       # metadata, logs, caches, guest ids...
-    nl=$'\n'; sp='&nbsp;'            # some useful constants
+    nl=$'\n'; tab=$'\t'; sp='&nbsp;'            # some useful constants
     localcss=                        # extra CSS in config
     version="<p class=version><a href='$source'>${source##*/}</a> v$VERSION, $copyright</p>"
 
@@ -339,7 +339,7 @@ gui-logs(){
 # v2 log date: 2026-03-24.21h47,48  v3 log date: 2026-04-11T05:58:20+00:00
 printlogs(){
     local meta="$1" log="$2" pass="$3" now="$4"
-    local rdate idate sdate date ip host agent qhost qagent days
+    local rdate idate sdate date ip host agent qhost qagent days line
     meta-read-raw "$meta"
     ((days = ($(date -d "${metas[expire]}" +%s) - now) / 86400 ))
     echo -n "<!--${metas[upload]}--><tr class=file><th class=file colspan=3><a href='?mode=log&pass=$pass' title='more info'>${metas[hname]}</a></th><th class=expire>Expires in $days days on ${metas[expire]}</tr>" # sort key
@@ -348,23 +348,40 @@ printlogs(){
         return
     fi
     echo -n "<tr class=legend><th>Date+Time<th>IP address<th>Hostname<th>User Agent</tr>"
-    while IFS=$'\t' read -r rdate ip host agent; do
-        if ((${#rdate} == 25)); then # v3 log: iso UTC
-            date=$(TZ="$clienttzone" date -d "$rdate" +"$dateformat")
-        else                         # v2 log: server local time
+    while read -r line; do
+        rdate=
+        if [[ $line =~ ^([^$tab]+)$tab([^$tab]+)$tab([^$tab]*)$tab(.*) ]]; then # v2/v3 format
+            rdate="${BASH_REMATCH[1]}"
+            ip="${BASH_REMATCH[2]}"
+            host="${BASH_REMATCH[3]}"
+            agent="${BASH_REMATCH[4]}"
+            # legacy v1 format line for backcompat
+        elif [[ $line =~ ^(.+)\ \[([.[:digit:]]+)\]\ [(]([^\)]*)[)]\ -\ (.*) ]]; then
+            rdate="${BASH_REMATCH[1]}"
+            ip="${BASH_REMATCH[2]}"
+            host="${BASH_REMATCH[3]}"
+            agent="${BASH_REMATCH[4]}"
+        fi
+        if (( ${#rdate} == 25 )); then # v3 dates: ISO UTC
+            date=$(TZ="$clienttzone" date -d "$rdate" +"$dateformat") 
+        elif (( ${#rdate} == 19 )); then # v2 format
             idate="$(tr '.h,' 'T::' <<<"$rdate")"
             sdate=$(date -d "$idate" +'%Y-%m-%d %H:%M:%S %z')
-            date=$(TZ="$clienttzone" date -d "$sdate" +"$dateformat") 
+            date=$(TZ="$clienttzone" date -d "$sdate" +"$dateformat")
         fi
         if [[ "$ip" != "$lastip" ]]; then
             lastip="$ip"
             rowcolor "$ip"
         fi
-        qhost=$(htmlencode "$host")
-        qagent=$(htmlencode "$agent")
-        [[ "$ip" == "$REMOTE_ADDR" ]] && qhost="<b>MySelf</b> $qhost"
-        echo -n "<tr class=log-line style='background-color:$color'><td class=date>$date<td class=ip>$ip<td class=host>$qhost<td class=useragent>$qagent</tr>"
-done < <(tac "$log")
+        if [[ -n "$rdate" ]]; then
+            qhost="$(geolocalization "$ip")$(htmlencode "$host")"
+            qagent=$(htmlencode "$agent")
+            [[ "$ip" == "$REMOTE_ADDR" ]] && qhost="<b>MySelf</b> $qhost"
+            echo -n "<tr class=log-line style='background-color:$color'><td class=date>$date<td class=ip>$ip<td class=host>$qhost<td class=useragent>$qagent</tr>"
+        else                    # unknown format
+            echo "<tr style='background-color:$rowscolxtra'><td colspan=4>${line}"
+        fi
+    done < <(tac "$log")
     echo "<tr><td colspan=4>&nbsp;"
 }
 
@@ -511,6 +528,19 @@ human_size() {
     done
 }
 
+geolocalization(){
+    local ip="$1" asn cn
+    [[ -e /var/lib/GeoIP/GeoLite2-ASN.mmdb ]] &&
+        asn=$(mmdblookup --file /var/lib/GeoIP/GeoLite2-ASN.mmdb --ip "$ip" "autonomous_system_organization")
+    [[ -e /var/lib/GeoIP/GeoLite2-City.mmdb ]] &&
+        cn=$(mmdblookup --file /var/lib/GeoIP/GeoLite2-City.mmdb --ip "$ip" country names en)
+    [[ $asn =~ ^[[:space:]]*\"(.*)\"[[:space:]]*(\<.*\>)[[:space:]]*$ ]] &&
+        asn="${BASH_REMATCH[1]}"
+    [[ $cn =~ ^[[:space:]]*\"(.*)\"[[:space:]]*(\<.*\>)[[:space:]]*$ ]] &&
+        cn="${BASH_REMATCH[1]}"
+    echo "$asn${asn:+, }$cn${cn:+.} "
+}
+
 ################################# Logs mode
 
 
@@ -557,6 +587,7 @@ rowscol[17]='hsl( 52.5, 60%, 95%)'
 rowscol[18]='hsl(275.0, 60%, 95%)'
 rowscol[19]='hsl(137.5, 60%, 95%)'
 rowscol[20]='hsl(  0, 60%, 95%)'
+rowscolxtra='#eee'
 rowkey=0
 rowscolmax=20
 
