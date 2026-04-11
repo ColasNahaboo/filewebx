@@ -9,6 +9,9 @@ copyright='(c)2026 Colas Nahaboo, MIT License'
 configfile='../filewebx.conf'
 validity=100
 passlen=12                # length of the random "passwords", 10^14 combinations
+# MaxMind Geoip databases
+geoipcity=/var/lib/GeoIP/GeoLite2-City.mmdb
+geoipasn=/var/lib/GeoIP/GeoLite2-ASN.mmdb
 declare -g root_url adminpass url urld data nl sp version gid isadmin isgadmin servertzone clienttzone dateformat localcss
 lastip="$REMOTE_ADDR"
 
@@ -530,10 +533,8 @@ human_size() {
 
 geolocalization(){
     local ip="$1" asn cn
-    [[ -e /var/lib/GeoIP/GeoLite2-ASN.mmdb ]] &&
-        asn=$(mmdblookup --file /var/lib/GeoIP/GeoLite2-ASN.mmdb --ip "$ip" "autonomous_system_organization")
-    [[ -e /var/lib/GeoIP/GeoLite2-City.mmdb ]] &&
-        cn=$(mmdblookup --file /var/lib/GeoIP/GeoLite2-City.mmdb --ip "$ip" country names en)
+    [[ -e "$geoipasn" ]] && asn=$(mmdblookup --file /var/lib/GeoIP/GeoLite2-ASN.mmdb --ip "$ip" "autonomous_system_organization")
+    [[ -e "$geoipcity" ]] && cn=$(mmdblookup --file /var/lib/GeoIP/GeoLite2-City.mmdb --ip "$ip" country names en)
     [[ $asn =~ ^[[:space:]]*\"(.*)\"[[:space:]]*(\<.*\>)[[:space:]]*$ ]] &&
         asn="${BASH_REMATCH[1]}"
     [[ $cn =~ ^[[:space:]]*\"(.*)\"[[:space:]]*(\<.*\>)[[:space:]]*$ ]] &&

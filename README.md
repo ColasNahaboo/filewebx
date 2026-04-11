@@ -62,6 +62,19 @@ passlen=12    # length of the various generated random passords and tokens
 
 You could also use re-declarations of bash variables and functions for advanced customisations, but these may break on upgrades. 
 
+### Geolocalization
+
+Optionally, you can have the host gelocalized when displaying logs. Just install the [MaxMind](https://www.maxmind.com) GeoIp databases.
+If you already have them installed, they will be auto-detected and used if present at `/var/lib/GeoIP/GeoLite2-City.mmdb` and `/var/lib/GeoIP/GeoLite2-ASN.mmdb`. If they reside elsewhere, set the variables `geoipcity` and `geoipasn` in the configuration file.
+
+To install them if you do not already have them on your ser ver:
+1. [SignUp](https://www.maxmind.com/en/geolite2/signup) for a free account
+2. Generate a License Key in your account dashboard. Download the provided config file and copy it in =/etc/GeoIP.conf= on your server.
+3. Install the `mmlookup` and `geoipupdate` utilities. In Debian/Ubuntu systems: `sudo apt install geoipupdate mmdb-bin`
+4. Run `sudo geoipupdate`
+5. add a weekly update of the database in root crontab:\
+   `0 12 * * 3 geoipupdate`
+
 ### Updating
 To update, just re-clone the repository and copy the `filewebx` and `filewebdl` as above in step 4.
 
@@ -142,7 +155,8 @@ In a nutshell: do whatever you want with this, and please credit me, but expect 
 ## Release notes
 
 - v2.1.0 2026-04-11 dates are now stored in logs as UTC ISO.
-  v2 was YYYY-MM-DD.HHhMM,SS in the server local time, but still work. 
+  Previously was YYYY-MM-DD.HHhMM,SS in the server local time, but still work.
+  Optionally the host are geolocalized (organisation & country) in log display.
 - v2.0.5 2026-04-10 displayed dates are now in the timezone of the client browser, not anymore in the timezone of the server
 - v2.0.4 2026-04-05 ui: fix the "copy url" button looks
 - v2.0.3 2026-04-04 ui: fix the "leaving window?" dialog appearing sometimes
