@@ -9,7 +9,7 @@ copyright='(c)2026 Colas Nahaboo, MIT License'
 configfile='../filewebx.conf'
 validity=100
 passlen=12                # length of the random "passwords", 10^14 combinations
-declare -g root_url adminpass url urld data nl sp version gid isadmin isgadmin servertzone clienttzone dateformat
+declare -g root_url adminpass url urld data nl sp version gid isadmin isgadmin servertzone clienttzone dateformat localcss
 lastip="$REMOTE_ADDR"
 
 ###################### Common
@@ -21,6 +21,7 @@ init(){
     urld="$root_url/_"               # URL of file downloader mini-script
     data=$(realpath '../data')       # metadata, logs, caches, guest ids...
     nl=$'\n'; sp='&nbsp;'            # some useful constants
+    localcss=                        # extra CSS in config
     version="<p class=version><a href='$source'>${source##*/}</a> v$VERSION, $copyright</p>"
 
     servertzone=$(timedatectl|grep -oP 'Time zone: *\K[^, (]*')
@@ -60,7 +61,7 @@ header(){
         guestlabel=" <span class=guest>[${gid#*~}]</span>"
         titlelabel=" [${gid#*~}]"
     fi
-    echo "Content-Type: text/html$nl$nl<html><head>
+    echo "Content-Type: text/html$nl$nl<html><head>$localcss
 <link rel=icon type='image/png' sizes='32x32' href='data:image/png;base64,$logo'>
 <style>$style</style><title>$title$titlelabel</title>
 <script>$javascript</script>
@@ -387,7 +388,7 @@ gui-admin(){
     ((nguests == 0)) && echo "<i>...none...</i>"
     echo "</ul></div>"
     # Section: create a new guest
-    echo "<div container>
+    echo "<div class=container>
           <form method=POST class=container>
           Create a new guest account:<p>
           <table>
