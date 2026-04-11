@@ -69,7 +69,7 @@ If you already have them installed, they will be auto-detected and used if prese
 
 To install them if you do not already have them on your server:
 1. [SignUp](https://www.maxmind.com/en/geolite2/signup) for a free account
-2. Generate a License Key in your account dashboard. Download the provided config file and copy it in =/etc/GeoIP.conf= on your server.
+2. Generate a License Key in your account dashboard. Download the provided config file and copy it in `/etc/GeoIP.conf` on your server.
 3. Install the `mmlookup` and `geoipupdate` utilities. In Debian/Ubuntu systems: `sudo apt install geoipupdate mmdb-bin`
 4. Run `sudo geoipupdate`
 5. add a weekly update of the database in root crontab:\
