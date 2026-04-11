@@ -220,21 +220,22 @@ document.getElementById('upload-form').onsubmit = function(e) {
     # Section: already uploaded
     local now=$(date +%s) days desc last
     echo "<div class=container>Already uploaded:<ul>"
-        # shellcheck disable=SC2010,SC2012   # Allow ls instead of find
-        for meta in "$data"/*.meta; do
-            [[ -e "$meta" ]] || continue
-            pass="${meta##*/}"; pass="${pass%.*}"
-            meta-read-raw "$meta"
-            ((days = ($(date -d "${metas[expire]}" +%s) - now) / 86400 ))
-            desc="<li><!--${metas[upload]}--><a href='?mode=log&pass=$pass' title='See its logs'>${metas[hname]}</a>$sp$sp$sp<span class=status>uploaded on ${metas[upload]%%T*}, expires in $days days on ${metas[expire]}</span>"
-            if [[ -s "${meta%.*}.log" ]]; then
-                last=$(tail -1 "${meta%.*}.log" 2>/dev/null | cut -f 1 -d $'\t')
-                echo "$desc, last log on $last"
-            else
-                echo "$desc <span class=guest>(no access logs yet)</span>"
-            fi                  
-        done | sort -r
-        echo "</ul></div>"
+    # shellcheck disable=SC2010,SC2012   # Allow ls instead of find
+    for meta in "$data"/*.meta; do
+        [[ -e "$meta" ]] || continue
+        pass="${meta##*/}"; pass="${pass%.*}"
+        meta-read-raw "$meta"
+        ((days = ($(date -d "${metas[expire]}" +%s) - now) / 86400 ))
+        desc="<li><!--${metas[upload]}--><a href='?mode=log&pass=$pass' title='See its logs'>${metas[hname]}</a>$sp$sp$sp<span class=status>uploaded on ${metas[upload]%%T*}, expires in $days days on ${metas[expire]}</span>"
+        if [[ -s "${meta%.*}.log" ]]; then
+            last=$(tail -1 "${meta%.*}.log" 2>/dev/null | cut -f 1 -d $'\t')
+            echo "$desc, last log on $last"
+        else
+            echo "$desc <span class=guest>(no access logs yet)</span>"
+        fi                  
+    done | sort -r
+    echo "</ul></div>"
+    footer    
 }
 
 gui-log(){
