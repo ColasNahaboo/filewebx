@@ -362,6 +362,7 @@ printlogs(){
         fi
         qhost=$(htmlencode "$host")
         qagent=$(htmlencode "$agent")
+        [[ "$ip" == "$REMOTE_ADDR" ]] && qhost="<b>MySelf</b> $qhost"
         echo -n "<tr class=log-line style='background-color:$color'><td class=date>$date<td class=ip>$ip<td class=host>$qhost<td class=useragent>$qagent</tr>"
 done < <(tac "$log")
     echo "<tr><td colspan=4>&nbsp;"
