@@ -31,13 +31,13 @@ init(){
     servertzone=$(timedatectl|grep -oP 'Time zone: *\K[^, (]*')
     dateformat='%Y-%m-%d.%Hh%M,%S' # v2 dates format. ISO-ish but readable 
     meta-read-raw "$data/meta"
-    if [[ -z "${metas[tzone-$REMOTE_ADDR]}" ]]; then
+    if [[ -z "${metas[tzone,$REMOTE_ADDR]}" ]]; then
         clienttzone=$(get-client-tzone "$REMOTE_ADDR")
         [[ -z "$clienttzone" ]] && clienttzone="$servertzone"
-        metas[tzone-$REMOTE_ADDR]="$clienttzone"
+        metas[tzone,$REMOTE_ADDR]="$clienttzone"
         meta-write-raw "$data/meta" # cache it
     else
-        clienttzone="${metas[tzone-$REMOTE_ADDR]}"
+        clienttzone="${metas[tzone,$REMOTE_ADDR]}"
     fi
     
     # are we the admin, or a guest account?
