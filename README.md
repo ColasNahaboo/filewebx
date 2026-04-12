@@ -154,6 +154,7 @@ In a nutshell: do whatever you want with this, and please credit me, but expect 
 
 ## Release notes
 
+- v2.1.1 2026-04-12 fix: note field of file properties was pre-filled with note field of the guest account
 - v2.1.0 2026-04-11 dates are now stored in logs as UTC ISO.
   Previously was YYYY-MM-DD.HHhMM,SS in the server local time, but still work.
   Optionally the host are geolocalized (organisation & country) in log display.

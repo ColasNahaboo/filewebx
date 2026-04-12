@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2155,SC1090,SC1091
-VERSION=2.1.0
+VERSION=2.1.1
 PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
@@ -23,7 +23,7 @@ init(){
     url="$root_url$SCRIPT_NAME"      # its URL
     urld="$root_url/_"               # URL of file downloader mini-script
     data=$(realpath '../data')       # metadata, logs, caches, guest ids...
-    nl=$'\n'; tab=$'\t'; sp='&nbsp;'            # some useful constants
+    nl=$'\n'; tab=$'\t'; sp='&nbsp;' # some useful constants
     localcss=                        # extra CSS in config
     version="<p class=version><a href='$source'>${source##*/}</a> v$VERSION, $copyright</p>"
 
@@ -416,7 +416,7 @@ gui-admin(){
           <table>
           <tr><td>Name:<td><input type=text name=newguest size=12 value=''>
           <td><i>short id: letters, numbers, hyphen, dot, underscore</i>
-          <tr><td>Note:<td colspan=2><input type=text name=note size=64 value=''>$sp$sp$sp<i>Description</i>
+          <tr><td>Note:<td colspan=2><input type=text name=gnote size=64 value=''>$sp$sp$sp<i>Description</i>
           <tr><td><label for=isadmin style='cursor: pointer;'>Is Admin:</label>
           <td><input type=checkbox id=isadmin name=isadmin value=yes>
           <td><i>Non-admins have no way to access the admin account. Admin guests have a tab to become the admin</i>
@@ -457,7 +457,7 @@ gui-guest(){
           Edit guest account $gid:<p>
           <input type=hidden name=savegid value='$gid'>
           <table>
-          <tr><td>Note:<td colspan=2><input type=text name=note size=64 value='${metas[note]}'>
+          <tr><td>Note:<td colspan=2><input type=text name=gnote size=64 value='${metas[note]}'>
           <tr><td><label for=isadmin style='cursor: pointer;'>Is Admin:</label>
           <td><input type=checkbox id=isadmin name=isadmin value=yes $isadmin>
           <td><i>(has a tab to go to the admin account)</i>
@@ -948,13 +948,13 @@ init
 # backoffice operations called from GUI pages
 # shellcheck disable=SC2154
 if [[ -n "$FORM_newguest" ]] && $isadmin; then
-    create-guest "$FORM_newguest" "$FORM_note" "$FORM_note"
+    create-guest "$FORM_newguest" "$FORM_gnote" "$FORM_isadmin"
 elif [[ -n "$FORM_savefile" ]]; then
     save-file "$FORM_savefile" "$FORM_note" "$FORM_expire" "$FORM_name"
 elif [[ -n "$FORM_delfile" ]]; then
     del-file "$FORM_delfile" 
 elif [[ -n "$FORM_savegid" ]] && $isadmin; then
-    save-guest "$FORM_savegid" "$FORM_name" "$FORM_note" "$FORM_isadmin"
+    save-guest "$FORM_savegid" "$FORM_name" "$FORM_gnote" "$FORM_isadmin"
 elif [[ -n "$FORM_delgid" ]] && $isadmin; then
     del-guest "$FORM_delgid"
 elif [[ "$FORM_mode" == clean ]]; then
