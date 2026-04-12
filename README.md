@@ -100,13 +100,18 @@ If you are using it from an IP address defined in your web server config (in the
 
 - The Logs tab enable to see all download logs of all files under the current account
 
-- The Admin tab, present only for the admin account, allows to create guests accounts and lists all the active ones. A guest account will only see its own uploaded files. A guest account will have a URL of the form\
+- The Admin tab, present only for the admin account, allows to create guests accounts and lists all the active one.
+
+## Guest accounts
+A guest account will only see its own uploaded files. A guest account will have a URL of the form\
 `https://my.filewebx.org/guestpassword~guestid`\
 with links to download its files in the  form\
 `https://my.filewebx.org/_/~guestid/filepassword/my-sent-file.foo`\
 For convenience, try to keep the guest ids as short as possible. Only alphanumeric and dot, hyphen and underscore characters are accepted.
 
-Guest accounts marked as admin have a link to get back to the main admin account. If you give to a friend the URL of a non-admin guest account, he will be able to upload files and get sharable download links to them, but will not be able to access the main admin account not create other guests.
+**Admin guest accounts** (accounts marked as admin) have a link to get back to the main admin account. They are thus very useful to create separate namespace that you can use yourslef when providing files for different audiences (e.g. work, family, surfing, gaming...).
+
+**Non-admin guest accounts** are meant to be given to other people, to enable them to upload files and get sharable download links on their own. Unlike admin guest accounts, they will not be able to access (or even guess) the main admin account, see other accounts uploaded files, not create other guests.
 
 ![](doc/screenshot-3.png)
 
