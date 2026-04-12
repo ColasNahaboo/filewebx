@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2155,SC1090,SC1091
-VERSION=2.1.1
+VERSION=2.1.2
 PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
@@ -9,10 +9,11 @@ copyright='(c)2026 Colas Nahaboo, MIT License'
 configfile='../filewebx.conf'
 validity=100
 passlen=12                # length of the random "passwords", 10^14 combinations
+freequota=30G             # Free space to leave on disk. K, M, G, % suffix
 # MaxMind Geoip databases
 geoipcity=/var/lib/GeoIP/GeoLite2-City.mmdb
 geoipasn=/var/lib/GeoIP/GeoLite2-ASN.mmdb
-declare -g root_url adminpass url urld data nl sp version gid isadmin isgadmin servertzone clienttzone dateformat localcss
+declare -g root_url adminpass url urld data nl sp version gid isadmin isgadmin servertzone clienttzone dateformat localcss quota
 lastip="$REMOTE_ADDR"
 
 ###################### Common
@@ -158,10 +159,13 @@ gui-upload(){
     fi
 
     # Section: upload a new file
+    local quota=$(freespace)
     echo "<style>#upload-button { display: none; }</style>
     <div id='progress-container' class=container style='display:none; width:600px; border:1px solid #ccc; margin:20px;'>
         <div id='progress-bar' style='width:0%; height:20px; background-color:green; color:white; text-align:center;'>0%</div>
-    </div></div>
+        </div>
+    </div>
+    <div id='error-message' class='info error container' style='display: none;'></div>
     <form id='upload-form' method='POST' enctype='multipart/form-data' class=container><table class=custom>
          <tr><td class=shrink>Select$another file to upload: <td><input class=btn type='file' id='file-input' name='file' size='64' onchange='checkFile()'>
             <tr id='upload-button' class=expand><td>Then click:<td><input class='btn btn2' type='submit' value='Upload' onclick='window.onbeforeunload = null;'> 
@@ -173,6 +177,13 @@ document.getElementById('upload-form').onsubmit = function(e) {
     var fileInput = document.getElementById('file-input');
     var file = fileInput.files[0];
     if (!file) return;
+    if (file.size >= $quota) {
+        showError(\"Upload aborted: File '\" + file.name + \"' is too large for the available space of $quota bytes\");
+        var uploadButton = document.getElementById('upload-button');
+        uploadButton.style.display = 'none';
+        fileInput.value = \"\"; // Optional: Clear the input immediately
+        return; 
+    }
 
     var formData = new FormData();
     formData.append('file', file);
@@ -210,13 +221,34 @@ document.getElementById('upload-form').onsubmit = function(e) {
     function checkFile() {
         var fileInput = document.getElementById('file-input');
         var uploadButton = document.getElementById('upload-button');
+        showError(\"\");
         if (fileInput.files.length > 0) {
-            uploadButton.style.display = 'table-row';
+            var file = fileInput.files[0];
+            if (file.size >= $quota) {
+                showError(\"File '\" + file.name + \"' is too large for the free space of $quota\");
+                uploadButton.style.display = 'none';
+                fileInput.value = \"\"; // Optional: Clear the input immediately
+            } else if (file.size == 0) {
+                showError(\"Empty file '\" + file.name + \"', aborted\");
+                uploadButton.style.display = 'none';
+                fileInput.value = \"\"; // Optional: Clear the input immediately
+            } else {
+                uploadButton.style.display = 'table-row';
+            }
         } else {
             uploadButton.style.display = 'none';
         }
     }
-    </script>"
+    function showError(msg) {
+        var errDiv = document.getElementById('error-message');
+        if (msg) {
+           errDiv.textContent = msg;
+           errDiv.style.display = 'block';
+        } else {
+          errDiv.style.display = 'none';
+        }
+    }
+</script>"
     # Section: already uploaded
     local now=$(date +%s) days desc last
     echo "<div class=container>Already uploaded:<ul>"
@@ -704,6 +736,26 @@ get-client-tzone(){
     local ip="$1"
     [[ $ip =~ ^(192\.168|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.) ]] && ip=
     curl -s "http://ip-api.com/line/$ip?fields=timezone"
+}
+
+# Returns available space for uplaod, in bytes
+freespace(){
+    local quota=0 free=$(df --block-size=1 --output=avail "$data" | tail -n 1)
+    local rest
+    if [[ $freequota =~ ^([[:digit:]]+)[[:space:]]*([KMG]?)$ ]]; then
+        quota="${BASH_REMATCH[1]}"
+        case "${BASH_REMATCH[2]}" in
+            K) ((quota *= 1024));;
+            M) ((quota *= 1048576));;
+            G) ((quota *= 1073741824));;
+        esac
+    elif [[ $freequota =~ ^([[:digit:]]+)[[:space:]]*%$ ]]; then
+        local total=$(df --block-size=1 --output=size "$data" | tail -n 1)
+        ((quota = "${BASH_REMATCH[1]}" * total / 100))
+        ((rest = free - quota))
+    fi
+    ((rest = free - quota))
+    ((rest < 0)) && echo 0 || echo "$rest"
 }
 
 ###################### CSS Style

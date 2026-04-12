@@ -58,6 +58,7 @@ For other servers (nginx, litespeed, caddy, ...) just ask your favorite AI to co
 ```
 validity=100  # default expiration date, in days
 passlen=12    # length of the various generated random passords and tokens
+freequota=30% # Free space to leave on disk. In bytes or with K, M, G, % suffix
 ```
 
 You could also use re-declarations of bash variables and functions for advanced customisations, but these may break on upgrades. 
@@ -109,7 +110,7 @@ with links to download its files in the  form\
 `https://my.filewebx.org/_/~guestid/filepassword/my-sent-file.foo`\
 For convenience, try to keep the guest ids as short as possible. Only alphanumeric and dot, hyphen and underscore characters are accepted.
 
-**Admin guest accounts** (accounts marked as admin) have a link to get back to the main admin account. They are thus very useful to create separate namespace that you can use yourslef when providing files for different audiences (e.g. work, family, surfing, gaming...).
+**Admin guest accounts** (accounts marked as admin) have a link to get back to the main admin account. They are thus very useful to create separate namespace that you can use yourself when providing files for different audiences (e.g. work, family, surfing, gaming...).
 
 **Non-admin guest accounts** are meant to be given to other people, to enable them to upload files and get sharable download links on their own. Unlike admin guest accounts, they will not be able to access (or even guess) the main admin account, see other accounts uploaded files, not create other guests.
 
@@ -159,6 +160,7 @@ In a nutshell: do whatever you want with this, and please credit me, but expect 
 
 ## Release notes
 
+- v2.1.2 2026-04-12 feat: configurable quota. By default, 30% of disk must stay free.
 - v2.1.1 2026-04-12 fix: note field of file properties was pre-filled with note field of the guest account
 - v2.1.0 2026-04-11 dates are now stored in logs as UTC ISO.
   Previously was YYYY-MM-DD.HHhMM,SS in the server local time, but still work.
