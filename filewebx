@@ -802,7 +802,7 @@ div.error { background: #fff0f0; border-left-color: red; }
 div.warning { background: #fffbeb; border-left-color: #d97706; }
 /*============================================== Navigation */
 .main-header {
-    display: flex; align-items: baseline; padding: 10px 20px;
+    display: flex; align-items: baseline; padding: 5px 20px;
     background: #f8f9fa; border-bottom: 1px solid #ddd;
 }
 .brand { font-weight: bold; font-size: 1.2em; }
