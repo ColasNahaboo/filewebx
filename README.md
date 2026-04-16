@@ -63,6 +63,18 @@ freequota=30% # Free space to leave on disk. In bytes or with K, M, G, % suffix
 
 You could also use re-declarations of bash variables and functions for advanced customisations, but these may break on upgrades. 
 
+### Quotas
+
+You can declare quotas in the configuration file by the variables `freequota` for all accounts, and in the asociative array `guestquotas` for specific guests. Quotas specify the amount of space that must **stay free** on the filesystem, not the amount used by the uploaded files.
+
+Quotas are number of bytes by default, but can be suffixed with a letter: K, M, G, % to indicate respectively kilobytes, megabytes, gigabytes, and percentage of the filesystem total size respectively. E.g:
+
+```bash
+freequota=30% # leave always 30% disk free for the main account
+guestquotas=(Anna 3000M Bob 4G Chuck 50%) # different quota for different guests
+                                          # other guests use $freequota
+```
+
 ### Geolocalization
 
 Optionally, you can have the host gelocalized when displaying logs. Just install the [MaxMind](https://www.maxmind.com) GeoIp databases.
@@ -161,7 +173,8 @@ In a nutshell: do whatever you want with this, and please credit me, but expect 
 
 ## Release notes
 
-- v2.1.3 2026-04-16 perf: logs rendered html cached
+- v2.2.0 2026-04-16 perf: logs rendered html cached
+  feat: guest quotas
 - v2.1.2 2026-04-12 feat: configurable quota. By default, 30% of disk must stay free.
 - v2.1.1 2026-04-12 fix: note field of file properties was pre-filled with note field of the guest account
 - v2.1.0 2026-04-11 dates are now stored in logs as UTC ISO.
