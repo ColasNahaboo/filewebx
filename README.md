@@ -130,8 +130,9 @@ For convenience, try to keep the guest ids as short as possible. Only alphanumer
 └── data/                   # Writable by www-data (logs and metadata)
     ├── meta                # global metadata (cached client timezones)
     ├── trash/              # "deleted" files and accounts are moved there
-    ├── v3u1WS.log          # access logs for file of token v3u1WS
     ├── v3u1WS.meta         # metadata (name, note, ...) for same
+    ├── v3u1WS.log          # access logs for file of token v3u1WS
+    ├── v3u1WS.cache        # html rendering of the logs cache
     ├── v3u1WS,foo.txt      # the file itself, of real name foo.txt
     └── ~Anna/              # account and trackers info for Anna
         ├── meta            # metadata of the Anna account (notes, is-admin)
@@ -160,6 +161,7 @@ In a nutshell: do whatever you want with this, and please credit me, but expect 
 
 ## Release notes
 
+- v2.1.3 2026-04-16 perf: logs rendered html cached
 - v2.1.2 2026-04-12 feat: configurable quota. By default, 30% of disk must stay free.
 - v2.1.1 2026-04-12 fix: note field of file properties was pre-filled with note field of the guest account
 - v2.1.0 2026-04-11 dates are now stored in logs as UTC ISO.
