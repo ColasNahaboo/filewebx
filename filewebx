@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2155,SC1090,SC1091
-VERSION=2.2.0
+VERSION=2.2.1
 PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
@@ -137,6 +137,7 @@ gui-upload(){
                 metas[url]="${urld}/$pass/${metas[uname]}"
                 metas[surl]="${urld}/$pass/"
                 metas[hsize]="$(human_size "$size")"
+                metas[note]=''
                 meta-write-raw "$meta"
                 info "success!<p>
 	        File uploaded (${metas[hsize]}), can be downloaded as the shareable link URL:

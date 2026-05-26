@@ -173,6 +173,7 @@ In a nutshell: do whatever you want with this, and please credit me, but expect 
 
 ## Release notes
 
+- v2.2.1 2026-05-26 fix: files uploaded in a guest account had a note set to the note of the guest account
 - v2.2.0 2026-04-16 perf: logs rendered html cached
   feat: guest quotas
 - v2.1.2 2026-04-12 feat: configurable quota. By default, 30% of disk must stay free.
