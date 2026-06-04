@@ -21,6 +21,8 @@ It is your own simpler WeTransfer / MASV / Smash / SwissTransfer / JumpShare / p
 
 It should work on any linux system with a web server and a CGI interface. Tested with Apache. It supposes it has its own virtual server setup, with all files reachable from the outside at top level be executable CGI scripts.
 
+Also, it requires **iconv**
+
 ## Installation
 
 1. Create a web site. Suppose the files will reside at `/www/filewebx/`, you will need to create the directory with 2 subdirectories in it (if www-data is the account which runs your server, it can be lshttps for openlitespeed):
@@ -173,6 +175,7 @@ In a nutshell: do whatever you want with this, and please credit me, but expect 
 
 ## Release notes
 
+- v2.2.2 2026-06-04 feat: the URL of the file is now a "slug" for more readability
 - v2.2.1 2026-05-26 fix: files uploaded in a guest account had a note set to the note of the guest account
 - v2.2.0 2026-04-16 perf: logs rendered html cached
   feat: guest quotas
