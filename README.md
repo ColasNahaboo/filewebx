@@ -9,13 +9,14 @@ It is your own simpler WeTransfer / MASV / Smash / SwissTransfer / JumpShare / p
 - It does not require logins and passwords for convenience and simplicity, but still provides significant security by using [Capability URLs](https://www.w3.org/TR/capability-urls/) , i.e. the urls used are not discoverable nor guessable, even by people you send links to. E.g:
   * Admin URL: `https://my.filewebx.org/adminpassword`
   * Guest URL: `https://my.filewebx.org/guestpassword~guestid`
-  * Download URL: `https://my.filewebx.org/_/filepassword/filename`
+  * Download URL: `https://my.filewebx.org/_/filepassword/filename-slug`
 - Easy to deploy and upgrade: 3 bash scripts.
 - Data is kept as plain files, so easy to administrate
 - It is privately self-hosted: everything is on your own server, nothing is handled by a third party.
 - It detects interrupted uploads and cancel them
 - The main account can create guests accounts — by just giving them a link — that can use the system without being able to use or see the files of other accounts
-- files are removed after some specifiable time, defaulting to 100 days.
+- files are removed after some specifiable time, defaulting to 100 days
+- the filename in the URL generated for download is a [slug](https://en.wikipedia.org/wiki/Clean_URL#Slug) that is lowercase letters, with accents removed or digits, the rest replaced by an hyphen, to avoid cumbersome url-encodings. 
 
 ## Requirements
 
