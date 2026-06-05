@@ -73,7 +73,7 @@ Optionally, you can provide a `filewebx.conf` configuration file above the root 
 - **noslug** if `true` or `yes` or `on`, do not "slugify" the file names in the download URLs, just use the full url-encoded file name. Default is `false`. \
   e.g: for a file named `L'haïku sécha près du bûtô, où le maçon bâilla.pdf` \
   `noslug=false` → `https://.../l-haiku-secha-pres-du-buto-ou-le-macon-bailla.pdf` \
-  `noslug=true` → `https://.../L%27haïku%20sécha%20près%20du%20bûtô%2C%20où%20le%20maçon%20bâilla.pdf` \
+  `noslug=true` → `https://.../L%27haïku%20sécha%20près%20du%20bûtô%2C%20où%20le%20maçon%20bâilla.pdf`
 
 You could also re-declare of any bash variables and functions for advanced customisations, but these may break on upgrades. May be useful however to experiment with tweaks.
 
