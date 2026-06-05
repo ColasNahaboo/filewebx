@@ -56,15 +56,26 @@ For other servers (nginx, litespeed, caddy, ...) just ask your favorite AI to co
 12 03 * * * curl -s 'https://my.filewex.org/yJDdYNEXmB?mode=clean'
 ```
 
-6. Optionally, you can provide a `filewebx.conf` configuration file above the root directory (e.g: `/www/filewebx/filewebx.conf`) to set some parameter in the bash syntax:
+### Configuration
 
-```
-validity=100  # default expiration date, in days
-passlen=12    # length of the various generated random passords and tokens
-freequota=30% # Free space to leave on disk. In bytes or with K, M, G, % suffix
-```
+Optionally, you can provide a `filewebx.conf` configuration file above the root directory (e.g: `/www/filewebx/filewebx.conf`) to set some parameter in the bash syntax (this file will be read — sourced — as a bash file):
 
-You could also use re-declarations of bash variables and functions for advanced customisations, but these may break on upgrades. 
+- **validity** default expiration date, in days. Default: 100 \
+  e.g: `validity=365`
+- **passlen** length of the various generated random passords and tokens. Default: 12 \
+  e.g: `passlen=8`
+- **freequota** the free space to leave on disk. Uploading a file that would reduce the free space under the freequota will be refused. In bytes or with a K, M, G suffix to indicate Kilobytes, Megabytes, or Gigabytes, or suffixed by % to mean a percentage of the total disk space. Default: 30G \
+  e.g: `freequota=5%`, `freequota=120M`, `freequota=1024K`, `freequota=1000000`
+- **guestquotas** same, but for specific guests. See below the "Quotas" section. \
+  e.g: `guestquotas=(Anna 3000M Bob 4G Chuck 50%)`
+- **LANG** and **LC_ALL** set these if you use accents in your file names and find that they are corrupted. The default is to set them to `en_US.UTF-8` if the script finds them empty. \
+  e.g: `LANG=en_US.UTF-8; LC_ALL=en_US.UTF-8`
+- **noslug** if `true` or `yes` or `on`, do not "slugify" the file names in the download URLs, just use the full url-encoded file name. Default is `false`. \
+  e.g: for a file named `L'haïku sécha près du bûtô, où le maçon bâilla.pdf` \
+  `noslug=false` → `https://.../l-haiku-secha-pres-du-buto-ou-le-macon-bailla.pdf` \
+  `noslug=true` → `https://.../L%27haïku%20sécha%20près%20du%20bûtô%2C%20où%20le%20maçon%20bâilla.pdf` \
+
+You could also re-declare of any bash variables and functions for advanced customisations, but these may break on upgrades. May be useful however to experiment with tweaks.
 
 ### Quotas
 
@@ -176,6 +187,9 @@ In a nutshell: do whatever you want with this, and please credit me, but expect 
 
 ## Release notes
 
+- v2.3.0 2026-06-05 feat: the config variable "noslug" enable the previous behavior of not slugify the URLs.
+  docs: the config file variables are better documented.
+  fix: file extensions are preserved during slugification.
 - v2.2.2 2026-06-04 feat: the URL of the file is now a "slug" for more readability
 - v2.2.1 2026-05-26 fix: files uploaded in a guest account had a note set to the note of the guest account
 - v2.2.0 2026-04-16 perf: logs rendered html cached

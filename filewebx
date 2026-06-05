@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2155,SC1090,SC1091
-VERSION=2.2.2
+VERSION=2.3.0
 PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
@@ -9,7 +9,14 @@ copyright='(c)2026 Colas Nahaboo, MIT License'
 configfile='../filewebx.conf'
 validity=100
 passlen=12                # length of the random "passwords", 10^14 combinations
+noslug=false              # do we "slugify" the filenames for download URLs
 freequota=30G             # Free space to leave on disk. K, M, G, % suffix
+if [[ -z "$LANG" ]]; then       # needed for iconv translit
+    LANG=en_US.UTF-8
+    LC_ALL=en_US.UTF-8
+fi
+export LANG
+export LC_ALL
 # MaxMind Geoip databases
 geoipcity=/var/lib/GeoIP/GeoLite2-City.mmdb
 geoipasn=/var/lib/GeoIP/GeoLite2-ASN.mmdb
@@ -741,20 +748,22 @@ urlencode() {
 
 # A slug is a string of hyphens and lower case letters
 # We remove accents and replace non-letters by hypens
-# needs "iconv"
-if [[ -z "$LANG" ]]; then       # needed for iconv translit
-    export LANG=en_US.UTF-8
-    export LC_ALL=en_US.UTF-8
-fi
+# needs "iconv". If $noslug set, just urlencode
 slugify(){
-    local so="$1"
-    local s="$(iconv -f UTF-8 -t ASCII//TRANSLIT <<<"${so,,}")" slug
-    [[ $s =~ ^[^[:lower:][:digit:]]+(.*)$ ]] && s="${BASH_REMATCH[1]}" # skip leading -
-    while [[ $s =~ ^([[:lower:][:digit:]]+)([^[:lower:][:digit:]]*)(.*)$ ]]; do
-        slug="${slug}${BASH_REMATCH[1]}-"
-        s="${BASH_REMATCH[3]}"
+    local name="$1" ext
+    [[ $noslug =~ ^(|no|false)$ ]] || { urlencode "$name"; return;}
+    if [[ $name =~ ^(.*)[.]([[:alnum:]]+)$ ]]; then # preserve extension
+        name="${BASH_REMATCH[1]}"
+        ext=".${BASH_REMATCH[2]}"
+    fi
+    local n="$(iconv -f UTF-8 -t ASCII//TRANSLIT <<<"${name,,}")" s
+    [[ $n =~ ^[^[:lower:][:digit:]]+(.*)$ ]] &&
+        n="${BASH_REMATCH[1]}" # skip leading -
+    while [[ $n =~ ^([[:lower:][:digit:]]+)([^[:lower:][:digit:]]*)(.*)$ ]]; do
+        s="${s}${BASH_REMATCH[1]}-"
+        n="${BASH_REMATCH[3]}"
     done
-    echo "${slug%-}"
+    echo "${s%-}$ext"
 }
 
 # Warning: the use of this free service is limited to 45 hits/mn. Cache result!
