@@ -190,6 +190,7 @@ In a nutshell: do whatever you want with this, and please credit me, but expect 
 - v2.3.0 2026-06-05 feat: the config variable "noslug" enable the previous behavior of not slugify the URLs.
   docs: the config file variables are better documented.
   fix: file extensions are preserved during slugification.
+  fix: logs are sorted by most recent upload date first.
 - v2.2.2 2026-06-04 feat: the URL of the file is now a "slug" for more readability
 - v2.2.1 2026-05-26 fix: files uploaded in a guest account had a note set to the note of the guest account
 - v2.2.0 2026-04-16 perf: logs rendered html cached

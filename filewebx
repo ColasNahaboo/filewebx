@@ -365,19 +365,21 @@ del-file(){
 }
 
 gui-logs(){
-    local tabs="$1" now=$(date +%s) meta metafiles log pass
+    local tabs="$1" now=$(date +%s) meta metafiles metadate log pass
     header '' "$tabs"
     info
     echo "<div class=minicontainer>Downloads:</div><table class=fwxlog>"
     # thus our own IP is in the dim 1rst color, to better spot others
     rowcolor "$REMOTE_ADDR"
     metafiles=("$data"/*.meta)
-    for meta in "${metafiles[@]}"; do
+    # sort by most recent upload date first
+    while read -r metadate; do
+        meta="${metadate%%:*}"  # metadate is filename:iso-date
         [[ -e "$meta" ]] || continue
         log="${meta%.meta}.log"
         pass="${meta##*/}"; pass="${pass%.*}"
         printlogs "$meta" "$log" "$pass" "$now"
-    done
+    done < <(grep -HoP '[[]upload[]]="\K[^"]+' "${metafiles[@]}" |sort -t : -rk 2)
     echo "</table>"
     footer
 }
