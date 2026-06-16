@@ -129,6 +129,9 @@ If you are using it from an IP address defined in your web server config (in the
 
 - The Admin tab, present only for the admin account, allows to create guests accounts and lists all the active one.
 
+- The log entries are colored with 20 colors chosen to be as distinct as possible for the human eye, [maximizing perceptual spacing](https://programmingdesignsystems.com/color/perceptually-uniform-color-spaces/), I used [golden-angle hue sampling](https://medium.com/@winwardo/simple-non-repeating-colour-generation-6efc995832b8) (137.508° steps), a well-known approximation of greedy max-min spacing to allow distinct colors to distinct IPs. I use a pre-computed table of 20 colors instead of dynamically generating them, as it is cumbersome to do in bash and a bit of overkill in this case. \
+Note that each IP adress always get the same color for each of its occurence in the logs table.
+
 ## Guest accounts
 A guest account will only see its own uploaded files. A guest account will have a URL of the form\
 `https://my.filewebx.org/guestpassword~guestid`\
