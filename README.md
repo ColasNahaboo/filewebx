@@ -22,7 +22,7 @@ It is your own simpler WeTransfer / MASV / Smash / SwissTransfer / JumpShare / p
 
 It should work on any linux system with a web server and a CGI interface. Tested with Apache. It supposes it has its own virtual server setup, with all files reachable from the outside at top level be executable CGI scripts.
 
-Also, it requires **iconv**
+Also, it requires **iconv**. It should be already present on your system, but if not, Install it by your linux package manager.
 
 ## Installation
 
@@ -50,7 +50,7 @@ For other servers (nginx, litespeed, caddy, ...) just ask your favorite AI to co
     `rsync cgibashopts root@my.filewebx.org:/www/filewebx/cgi`\
     `rm cgibashopts`
 
-5. install a crontab entry to clean daily the obsolete files after their expiraton date, byt accessing your admin URL with the parameter `mode=clean`, e.g:
+5. install a crontab entry to clean daily the obsolete files after their expiraton date, by accessing your admin URL with the parameter `mode=clean`, e.g:
    
 ```
 12 03 * * * curl -s 'https://my.filewex.org/yJDdYNEXmB?mode=clean'
@@ -156,9 +156,9 @@ For convenience, try to keep the guest ids as short as possible. Only alphanumer
 └── data/                   # Writable by www-data (logs and metadata)
     ├── meta                # global metadata (cached client timezones)
     ├── trash/              # "deleted" files and accounts are moved there
-    ├── v3u1WS.meta         # metadata (name, note, ...) for same
     ├── v3u1WS.log          # access logs for file of token v3u1WS
-    ├── v3u1WS.cache        # html rendering of the logs cache
+    ├── v3u1WS.meta         # metadata (name, note, ...) for same
+    ├── v3u1WS.cache        # html rendering of the its logs cache
     ├── v3u1WS,foo.txt      # the file itself, of real name foo.txt
     └── ~Anna/              # account and trackers info for Anna
         ├── meta            # metadata of the Anna account (notes, is-admin)
@@ -183,7 +183,7 @@ Do not forget also to change it in your apache configuration, if present.
 ## License
 
 MIT License - (c) 2026 Colas Nahaboo.
-In a nutshell: do whatever you want with this, and please credit me, but expect no warranty.
+In a nutshell: do whatever you want with this, credit me if you please, but expect no warranty.
 
 ## Release notes
 
