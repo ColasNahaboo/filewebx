@@ -77,6 +77,15 @@ Optionally, you can provide a `filewebx.conf` configuration file above the root 
 
 You could also re-declare of any bash variables and functions for advanced customisations, but these may break on upgrades. May be useful however to experiment with tweaks.
 
+### Upload size limit
+
+Although Filewebx does not impose a size limit on your uploaded files, your web servber does, to prevent Denial of Service (DoS) attacks (e.g., someone trying to crash your server by uploading a 100 GB file of junk). To increase it:
+
+- **For apache**, the setting is `LimitRequestBody`. E.g. to enable uploading files up to 5G globally in your filewebx VirtualHost conf inside a Directory or Location directive: `LimitRequestBody 5368709120`
+- **For nginx**, [client_max_body_size](https://docs.rackspace.com/docs/limit-file-upload-size-in-nginx).
+- **For caddy** `max_size 5GB` inside a `request_body {...}` block.
+- **For Lighttpd** via the `server.max-request-size directive`. Unlike Apache or Nginx, Lighttpd measures this parameter strictly in KiloBytes (1GB = 1,048,576 KB).For 5 GB, the math is 5 x 1,048,576 = `5242880`. E.g: `server.max-request-size = 5242880`.
+
 ### Quotas
 
 You can declare quotas in the configuration file by the variables `freequota` for all accounts, and in the asociative array `guestquotas` for specific guests. Quotas specify the amount of space that must **stay free** on the filesystem, not the amount used by the uploaded files.
