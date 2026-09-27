@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2155,SC1090,SC1091
-VERSION=2.3.0
+VERSION=2.3.1
 PROGNAME=filewebx
 source='https://github.com/ColasNahaboo/filewebx'
 copyright='(c)2026 Colas Nahaboo, MIT License'
@@ -75,7 +75,7 @@ header(){
         guestlabel=" <span class=guest>[${gid#*~}]</span>"
         titlelabel=" [${gid#*~}]"
     fi
-    echo "Content-Type: text/html$nl$nl<html><head>$localcss
+    echo "Content-Type: text/html$nl$nl<!DOCTYPE html><html><head>$localcss
 <link rel=icon type='image/png' sizes='32x32' href='data:image/png;base64,$logo'>
 <style>$style</style><title>$title$titlelabel</title>
 <script>$javascript</script>
@@ -283,6 +283,7 @@ document.getElementById('upload-form').onsubmit = function(e) {
 
 gui-log(){
     local tabs="$1" pass="$2" now=$(date +%s) meta log pass days upped
+    local files size hsize flength
     header '' "$tabs"
     info
     # thus our own IP is in the dim 1rst color, to better spot others
@@ -293,6 +294,22 @@ gui-log(){
     meta-read-raw "$meta"
     upped="${metas[upload]}"
     ((days = ($(date -d "${metas[expire]}" +%s) - now) / 86400 ))
+    # Section: file length (bytes on disk, human form taken from the metadata)
+    files=("$data/$pass,"*)
+    size=
+    [[ -e "${files[0]}" ]] && size=$(stat -c %s -- "${files[0]}")
+    hsize="${metas[hsize]}"
+    [[ "$hsize" =~ [[:digit:]][[:space:]][KMG]B$ ]] || hsize=   # only keep K/M/G forms
+    if [[ -z "$hsize" && -n "$size" ]] && (( size >= 1024 )); then # legacy metas
+        hsize=$(human_size "$size")
+    fi
+    if [[ -z "$size" ]]; then
+        flength=unknown
+    elif [[ -n "$hsize" ]]; then
+        flength="$hsize ($size bytes)"
+    else
+        flength="$size bytes"
+    fi
     # Section: Edit file metadata
     echo "<div class=minicontainer><b>${metas[hname]}</b>
           <span class=status>(uploaded on ${upped%%T*})</span><p>
@@ -314,6 +331,7 @@ gui-log(){
           <tr><td>Note:<td colspan=2><input type=text name=note size=64 value='${metas[note]}' title='A free comment, for your eyes only'>
           <tr><td>Expires:<td colspan=2><input type=text name=expire size=11 value='${metas[expire]}' pattern='^\d{4}-\d{2}-\d{2}|[0-9]*[1-9][0-9]*$' title='Enter a date (YYYY-MM-DD) or a number of days'>
           (in $days days) <span class=status>Enter a number of days or the expiration date as YYYY-MM-DD</span>
+          <tr><td>Length:<td colspan=2 title='Size of the stored file'>$flength
           <tr><td colspan=3><input class='btn' type='submit' value='Modify'
                   onclick='window.onbeforeunload = null;'>
           </table></form>"

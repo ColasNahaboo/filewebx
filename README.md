@@ -199,6 +199,7 @@ In a nutshell: do whatever you want with this, credit me if you please, but expe
 
 ## Release notes
 
+- v2.3.1 2026-09-27 log page shows also the file length
 - v2.3.0 2026-06-05 feat: the config variable "noslug" enable the previous behavior of not slugify the URLs.
   docs: the config file variables are better documented.
   fix: file extensions are preserved during slugification.
